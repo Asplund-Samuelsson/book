@@ -2,6 +2,7 @@ import json
 import uuid
 import pandas as pd
 from datetime import datetime
+from dateutil import tz
 from pathlib import Path
 
 
@@ -58,3 +59,10 @@ class Booking():
 
     def add_answer(self, index, name, answer):
         self.booking.loc[index, name] = answer
+
+    def to_local_time(self, time):
+        from_zone = tz.gettz('UTC')
+        to_zone = tz.gettz('Europe/Stockholm')
+        utc = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S').replace(tzinfo=from_zone)
+        local = utc.astimezone(to_zone).replace(microsecond=0).strftime('%Y-%m-%d %H:%M')
+        return local

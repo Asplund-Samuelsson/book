@@ -8,16 +8,16 @@ app.config['SECRET_KEY'] = 'CRDFY3AhXQ6QwEqwXKkyH6UGmcn3heSN'
 b = Booking()
 
 
-def make_index_list():
+def make_index_list(n=5):
+    bookings_raw = sorted(b.metadata.values(), key=lambda x: x['time_created'], reverse=True)
     bookings = []
-    for identifier in b.metadata:
-        booking = b.metadata[identifier]
-        booking = {
+    for booking in bookings_raw:
+        bookings.append({
             'title': booking['title'],
+            'time_created': b.to_local_time(booking['time_created']),
             'description': booking['description'],
-            }
-        bookings.append(booking)
-    return bookings
+            })
+    return bookings[:n]
 
 
 @app.route('/')

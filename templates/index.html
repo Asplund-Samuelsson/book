@@ -5,6 +5,7 @@
     {% for booking in bookings %}
         <div class='booking'>
             <h3>{{ booking['title'] }}</h3>
+            <p><i>{{ booking['time_created'] }}</i></p>
             <p>{{ booking['description'] }}</p>
         </div>
     {% endfor %}

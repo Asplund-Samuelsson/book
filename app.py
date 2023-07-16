@@ -33,9 +33,7 @@ def create():
         description = request.form['description']
 
         if not title:
-            flash('Title is required!')
-        elif not description:
-            flash('description is required!')
+            flash('Titel krävs.')
         else:
             b.new()
             b.update_title(title)

@@ -3,7 +3,7 @@
 {% block content %}
     <h1>{% block title %} Skapa ny bokning {% endblock %}</h1>
     <form method="post">
-        <label for="title">Titel</label>
+        <label for="title">Titel*</label>
         <br>
         <input type="text" name="title"
                placeholder="Vad ska bokas?"
@@ -24,6 +24,8 @@
                   rows="15"
                   cols="60"
                   >{{ request.form['description'] }}</textarea>
+        <br>
+        <p>*Obligatorisk</p>
         <br>
         <button type="submit">Spara</button>
     </form>

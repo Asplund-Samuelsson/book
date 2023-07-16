@@ -40,6 +40,11 @@ def create():
             b.update_description(description)
             b.update_location(location)
             b.save()
-            return redirect(url_for('index'))
+            return redirect(url_for('show', identifier=b.identifier))
 
     return render_template('create.html')
+
+@app.route('/show/<identifier>')
+def show(identifier):
+    b.load(identifier)
+    return render_template('show.html', booking=b.to_table())

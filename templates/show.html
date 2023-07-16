@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
+    <table>
+        <tr>
+          {% for column in booking['header'] %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+        {% for row in booking['rows'] %}
+        <tr>
+          {% for column in row %}
+          <td>{{ column }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table> 
+{% endblock %}

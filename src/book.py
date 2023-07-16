@@ -11,6 +11,12 @@ class Booking():
         self.metafile = Path("data/metadata.json")
         self.identifier = ""
         self.columns = ['date', 'start_time', 'end_time']
+        self.columns_translation = {
+            'date': 'Datum',
+            'start_time': 'Från',
+            'end_time': 'Till',
+            }
+        self.replace_bool = {False: '', True: '\u2713'}
         if self.metafile.is_file():
             with open(self.metafile) as m:
                 self.metadata = json.loads(m.read())
@@ -66,3 +72,28 @@ class Booking():
         utc = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S').replace(tzinfo=from_zone)
         local = utc.astimezone(to_zone).replace(microsecond=0).strftime('%Y-%m-%d %H:%M')
         return local
+
+    def weekday(self, date):
+        weekdays = [
+            "Måndag",
+            "Tisdag",
+            "Onsdag",
+            "Torsdag",
+            "Fredag",
+            "Lördag",
+            "Söndag"
+            ]
+        i = datetime.strptime(date, '%Y-%m-%d').weekday()
+        return weekdays[i]
+
+    def to_table(self):
+        title = self.metadata[self.identifier]['title']
+        header = [self.columns_translation.get(x, x) for x in self.booking.columns]
+        header.insert(0, '')
+        rows = []
+        for row in self.booking.iterrows():
+            row = [self.replace_bool.get(x, x) for x in row[1]]
+            row.insert(0, self.weekday(row[0]))
+            rows.append(row)
+        table = {'title': title, 'header': header, 'rows': rows}
+        return table

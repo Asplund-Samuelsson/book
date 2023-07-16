@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Bokningar {% endblock %}</h1>
+    {% for booking in bookings %}
+        <div class='booking'>
+            <h3>{{ booking['title'] }}</h3>
+            <p>{{ booking['description'] }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}

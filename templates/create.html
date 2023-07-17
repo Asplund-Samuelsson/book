@@ -27,6 +27,10 @@
         <br>
         <p>*Obligatorisk</p>
         <br>
+        <input type="date" name="date" value="{{ request.form['date'] }}"></input>
+        <input type="time" name="start_time" value="{{ request.form['start_time'] }}"></input>
+        <input type="time" name="end_time" value="{{ request.form['end_time'] }}"></input>
+        <br>
         <button type="submit">Spara</button>
     </form>
 {% endblock %}

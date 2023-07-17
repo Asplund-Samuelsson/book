@@ -1,5 +1,6 @@
 import json
 import uuid
+import math
 import pandas as pd
 from datetime import datetime
 from dateutil import tz
@@ -93,6 +94,7 @@ class Booking():
         rows = []
         for row in self.booking.iterrows():
             row = [self.replace_bool.get(x, x) for x in row[1]]
+            row = ['' if str(x) == 'nan' else x for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         table = {'title': title, 'header': header, 'rows': rows}

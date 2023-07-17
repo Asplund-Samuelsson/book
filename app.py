@@ -11,13 +11,14 @@ b = Booking()
 
 
 def make_index_list(n=5):
-    bookings_raw = sorted(b.metadata.values(), key=lambda x: x['time_created'], reverse=True)
+    bookings_raw = sorted(b.metadata.items(), key=lambda x: x[1]['time_created'], reverse=True)
     bookings = []
     for booking in bookings_raw:
         bookings.append({
-            'title': booking['title'],
-            'time_created': b.to_local_time(booking['time_created']),
-            'description': booking['description'],
+            'identifier': booking[0],
+            'title': booking[1]['title'],
+            'time_created': b.to_local_time(booking[1]['time_created']),
+            'description': booking[1]['description'],
             })
     return bookings[:n]
 

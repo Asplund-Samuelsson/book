@@ -4,7 +4,7 @@
     <h1>{% block title %} Bokningar {% endblock %}</h1>
     {% for booking in bookings %}
         <div class='booking'>
-            <h3>{{ booking['title'] }}</h3>
+            <h3><a href="{{ url_for('show', identifier=booking['identifier']) }}">{{ booking['title'] }}</a></h3>
             <p><i>{{ booking['time_created'] }}</i></p>
             <p>{{ booking['description'] }}</p>
         </div>

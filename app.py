@@ -34,20 +34,19 @@ def create():
         title = request.form['title']
         location = request.form.get('location', '')
         description = request.form['description']
-        date = request.form['date']
-        start_time = request.form['start_time']
-        end_time = request.form['end_time']
+        dates = request.form.getlist('dates')
+        start_times = request.form.getlist('start_times')
+        end_times = request.form.getlist('end_times')
 
         if not title:
             flash('Titel krävs.')
-        elif not date:
-            flash('Datum krävs.')
         else:
             b.new()
             b.update_title(title)
             b.update_description(description)
             b.update_location(location)
-            b.add_occasion(date, start_time, end_time)
+            for occasion in zip(dates, start_times, end_times):
+                b.add_occasion(occasion[0], occasion[1], occasion[2])
             b.save()
             return redirect(url_for('show', identifier=b.identifier))
 

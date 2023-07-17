@@ -17,18 +17,15 @@ function addField(plusElement){
     // Creating the input elements.
     let dates = document.createElement("input");
     dates.setAttribute("type", "date");
-    dates.setAttribute("name", "dates[]");
-    dates.setAttribute("value", "{{ request.form['date'] }}")
+    dates.setAttribute("name", "dates");
 
     let start_times = document.createElement("input");
     start_times.setAttribute("type", "time");
-    start_times.setAttribute("name", "start_times[]");
-    start_times.setAttribute("value", "{{ request.form['start_time'] }}");
+    start_times.setAttribute("name", "start_times");
 
     let end_times = document.createElement("input");
     end_times.setAttribute("type", "time");
-    end_times.setAttribute("name", "end_times[]");
-    end_times.setAttribute("value", "{{ request.form['end_time'] }}");
+    end_times.setAttribute("name", "end_times");
  
     // Creating the plus span element.
     let plus = document.createElement("span");

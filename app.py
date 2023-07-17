@@ -56,3 +56,22 @@ def create():
 def show(identifier):
     b.load(identifier)
     return render_template('show.html', booking=b.to_table())
+
+@app.route('/answer/<identifier>', methods=['GET', 'POST'])
+def answer(identifier):
+    b.load(identifier)
+
+    if request.method == 'POST':
+        name = request.form['name']
+        answers = request.form.getlist('answers')
+
+        if not name:
+            flash('Namn krävs.')
+        else:
+            for i, answer in enumerate(answers):
+                n = list(b.booking.index)[i]
+                b.add_answer(n, name, answer is not None)
+            b.save()
+            return redirect(url_for('show', identifier=b.identifier))
+
+    return render_template('answer.html', booking=b.to_table())

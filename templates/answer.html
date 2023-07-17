@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <form method="post">
+    <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
+    <label for="name">Namn*</label>
+    <br>
+    <input type="text" name="name"
+           placeholder="Ditt namn"
+           value="{{ request.form['name'] }}"></input>
+    <br>
+    <table>
+        <tr>
+          {% for column in booking['header'] %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+        {% for row in booking['rows'] %}
+        <tr>
+          {% for column in row %}
+          <td>{{ column }}</td>
+          {% endfor %}
+          <td><input type="checkbox" name="answers"></input></td>
+        </tr>
+        {% endfor %}
+      </table>
+    <button type="submit">Spara</button>
+    </form>
+{% endblock %}

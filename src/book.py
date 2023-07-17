@@ -1,6 +1,5 @@
 import json
 import uuid
-import math
 import pandas as pd
 from datetime import datetime
 from dateutil import tz
@@ -87,12 +86,14 @@ class Booking():
         i = datetime.strptime(date, '%Y-%m-%d').weekday()
         return weekdays[i]
 
-    def to_table(self):
+    def to_table(self, names=True):
         title = self.metadata[self.identifier]['title']
-        header = [self.columns_translation.get(x, x) for x in self.booking.columns]
+        wanted_columns = self.booking.columns if names else self.columns
+        header = [self.columns_translation.get(x, x) for x in wanted_columns]
         header.insert(0, '')
         rows = []
         for row in self.booking.iterrows():
+            row = row if names else row[:len(self.columns)]
             row = [self.replace_bool.get(x, x) for x in row[1]]
             row = ['' if str(x) == 'nan' else x for x in row]
             row.insert(0, self.weekday(row[0]))

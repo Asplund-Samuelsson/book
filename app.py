@@ -1,9 +1,11 @@
+import secrets
+
 from flask import Flask, render_template, request, url_for, flash, redirect
 
 from src.book import Booking
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'CRDFY3AhXQ6QwEqwXKkyH6UGmcn3heSN'
+app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 
 b = Booking()
 

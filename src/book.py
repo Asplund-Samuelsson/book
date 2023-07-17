@@ -35,10 +35,10 @@ class Booking():
 
     def update_title(self, title):
         self.metadata[self.identifier]['title'] = title
-    
+
     def update_description(self, description):
         self.metadata[self.identifier]['description'] = description
-    
+
     def update_location(self, location):
         self.metadata[self.identifier]['location'] = location
 

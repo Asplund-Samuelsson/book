@@ -1,51 +1,13 @@
 import secrets
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    url_for,
-    flash,
-    redirect,
-    )
-from flask_bootstrap import Bootstrap5
-from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import (
-    StringField,
-    DateField,
-    TimeField,
-    SubmitField,
-    FormField,
-    FieldList,
-    )
-from wtforms.validators import DataRequired, Length
+from flask import Flask, render_template, request, url_for, flash, redirect
 
 from src.book import Booking
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 
-bootstrap = Bootstrap5(app)
-csrf = CSRFProtect(app)
-
 b = Booking()
-
-
-class OccasionEntryForm(FlaskForm):
-    date = DateField('')
-    start_time = TimeField('')
-    end_time = TimeField('')
-
-
-class BookingForm(FlaskForm):
-    title = StringField(
-        'Titel', validators=[DataRequired()], render_kw={'placeholder': 'Vad ska bokas?'})
-    location = StringField(
-        'Plats', render_kw={'placeholder': 'Plats för bokningen'})
-    description = StringField(
-        'Beskrivning', validators=[Length(15, 60)], render_kw={'placeholder': 'Beskrivning av bokningen'})
-    occasions = FieldList(FormField(OccasionEntryForm), min_entries=1)
-    submit = SubmitField('Spara')
 
 
 def make_index_list(n=5):
@@ -68,7 +30,6 @@ def index():
 
 @app.route('/create/', methods=('GET', 'POST'))
 def create():
-    form = BookingForm()
     if request.method == 'POST':
         title = request.form['title']
         location = request.form.get('location', '')
@@ -90,7 +51,7 @@ def create():
             b.save()
             return redirect(url_for('show', identifier=b.identifier))
 
-    return render_template('create.html', form=form)
+    return render_template('create.html')
 
 @app.route('/show/<identifier>')
 def show(identifier):

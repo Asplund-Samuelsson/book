@@ -1,36 +1,7 @@
 {% extends 'base.html' %}
+{% from 'bootstrap5/form.html' import render_form %}
 
 {% block content %}
     <h1>{% block title %} Skapa ny bokning {% endblock %}</h1>
-    <form method="post">
-        <label for="title">Titel*</label>
-        <br>
-        <input type="text" name="title"
-               placeholder="Vad ska bokas?"
-               value="{{ request.form['title'] }}"></input>
-        <br>
-
-        <label for="title">Plats</label>
-        <br>
-        <input type="text" name="location"
-               placeholder="Plats för bokningen (frivillig)"
-               value="{{ request.form['location'] }}"></input>
-        <br>
-
-        <label for="description">Beskrivning</label>
-        <br>
-        <textarea name="description"
-                  placeholder="Beskrivning av bokningen"
-                  rows="15"
-                  cols="60"
-                  >{{ request.form['description'] }}</textarea>
-        <br>
-        <p>*Obligatorisk</p>
-        <br>
-        <input type="date" name="date" value="{{ request.form['date'] }}"></input>
-        <input type="time" name="start_time" value="{{ request.form['start_time'] }}"></input>
-        <input type="time" name="end_time" value="{{ request.form['end_time'] }}"></input>
-        <br>
-        <button type="submit">Spara</button>
-    </form>
+    {{ render_form(form) }}
 {% endblock %}

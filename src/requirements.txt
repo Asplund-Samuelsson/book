@@ -1,2 +1,4 @@
 pandas==2.0.2
 Flask==2.3.2
+Flask-WTF==1.1.1
+Bootstrap-Flask==2.2.0

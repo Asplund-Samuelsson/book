@@ -63,14 +63,14 @@ def answer(identifier):
 
     if request.method == 'POST':
         name = request.form['name']
-        answers = request.form.getlist('answers')
+        true_answers = [int(x) for x in request.form.getlist('answers')]
+        answers = [x in true_answers for x in range(len(b.booking))]
 
         if not name:
             flash('Namn krävs.')
         else:
-            for i, answer in enumerate(answers):
-                n = list(b.booking.index)[i]
-                b.add_answer(n, name, answer is not None)
+            for i in range(len(b.booking)):
+                b.add_answer(i, name, answers[i])
             b.save()
             return redirect(url_for('show', identifier=b.identifier))
 

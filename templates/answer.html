@@ -20,7 +20,7 @@
           {% for column in row %}
           <td>{{ column }}</td>
           {% endfor %}
-          <td><input type="checkbox" name="answers"></input></td>
+          <td><input type="checkbox" name="answers" value="{{ loop.index0 }}"></input></td>
         </tr>
         {% endfor %}
       </table>

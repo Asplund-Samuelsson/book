@@ -10,22 +10,9 @@ app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 b = Booking()
 
 
-def make_index_list(n=5):
-    bookings_raw = sorted(b.metadata.items(), key=lambda x: x[1]['time_created'], reverse=True)
-    bookings = []
-    for booking in bookings_raw:
-        bookings.append({
-            'identifier': booking[0],
-            'title': booking[1]['title'],
-            'time_created': b.to_local_time(booking[1]['time_created']),
-            'description': booking[1]['description'],
-            })
-    return bookings[:n]
-
-
 @app.route('/')
 def index():
-    return render_template('index.html', bookings=make_index_list())
+    return render_template('index.html', bookings=b.index_list())
 
 
 @app.route('/create/', methods=('GET', 'POST'))

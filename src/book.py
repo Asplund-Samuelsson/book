@@ -1,4 +1,3 @@
-import json
 import uuid
 import pandas as pd
 from datetime import datetime
@@ -8,7 +7,8 @@ from pathlib import Path
 
 class Booking():
     def __init__(self):
-        self.metafile = Path("data/metadata.json")
+        self.metafile = Path("data/bookings.csv")
+        self.metacolumns = ['identifier', 'title', 'time_created', 'description', 'location']
         self.identifier = ""
         self.columns = ['date', 'start_time', 'end_time']
         self.columns_translation = {
@@ -18,29 +18,24 @@ class Booking():
             }
         self.replace_bool = {False: '', True: '\u2713'}
         if self.metafile.is_file():
-            with open(self.metafile) as m:
-                self.metadata = json.loads(m.read())
+            self.metadata = pd.read_csv(self.metafile)
         else:
-            self.metadata = dict()
+            self.metadata = pd.DataFrame({k: [] for k in self.metacolumns})
 
     def new(self):
+        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
         self.identifier = str(uuid.uuid1())
-        self.metadata[self.identifier] = {
-            "title": "",
-            "time_created": datetime.utcnow().replace(microsecond=0).isoformat(),
-            "description": "",
-            "location": "",
-            }
+        self.metadata.loc[len(self.metadata)] = [self.identifier, "", time_created, "",""]
         self.booking = pd.DataFrame({column: [] for column in self.columns})
 
     def update_title(self, title):
-        self.metadata[self.identifier]['title'] = title
+        self.metadata.loc[self.metadata.identifier == self.identifier, ['title']] = title
 
     def update_description(self, description):
-        self.metadata[self.identifier]['description'] = description
+        self.metadata.loc[self.metadata.identifier == self.identifier, ['description']] = description
 
     def update_location(self, location):
-        self.metadata[self.identifier]['location'] = location
+        self.metadata.loc[self.metadata.identifier == self.identifier, ['location']] = location
 
     def file(self, identifier):
         return f"data/{identifier}.csv"
@@ -48,8 +43,7 @@ class Booking():
     def save(self):
         # TODO What if multiple users save at the same time?
         self.booking.to_csv(self.file(self.identifier), index=False)
-        with open(self.metafile, 'w') as m:
-            m.write(json.dumps(self.metadata, indent=2))
+        self.metadata.to_csv(self.metafile, index=False)
 
     def load(self, identifier):
         self.identifier = identifier
@@ -98,5 +92,18 @@ class Booking():
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         table = {'header': header, 'rows': rows}
-        table.update(self.metadata[self.identifier])
+        table.update(self.metadata.loc[self.metadata.identifier == self.identifier].to_dict('records')[0])
         return table
+
+    def index_list(self, n=5):
+        bookings_raw = self.metadata.sort_values(by='time_created', ascending=False).head(n).iterrows()
+        bookings = []
+        for booking in bookings_raw:
+            booking = booking[1].to_dict()
+            bookings.append({
+                'identifier': booking['identifier'],
+                'title': booking['title'],
+                'time_created': self.to_local_time(booking['time_created']),
+                'description': booking['description'],
+                })
+        return bookings

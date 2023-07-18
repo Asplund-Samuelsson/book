@@ -18,29 +18,6 @@ h1{
 	color:  #888;
 }
 
-.notes{
-	padding: 20px;
-}
-
-.notes p{
-	border-bottom: thin dotted #d4d4d4;
-	padding: 20px 10px 0px 0px;
-	font-style: italic;
-	font-size: 18px;
-}
-
-.notes p span{
-	font-size: 16px;
-	float:  right;
-	cursor: pointer;
-	display: inline-block;
-}
-.notes p span.mark{
-	color: green;
-	font-size: 30px;
-	transform: translateY(-10px);
-}
-
 form{
 	width:  100%;
 }

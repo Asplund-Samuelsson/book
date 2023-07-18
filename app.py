@@ -52,10 +52,12 @@ def create():
 
     return render_template('create.html')
 
+
 @app.route('/show/<identifier>')
 def show(identifier):
     b.load(identifier)
-    return render_template('show.html', booking=b.to_table())
+    return render_template('show.html', booking=b.to_table(), identifier=b.identifier)
+
 
 @app.route('/answer/<identifier>', methods=['GET', 'POST'])
 def answer(identifier):

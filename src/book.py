@@ -87,7 +87,6 @@ class Booking():
         return weekdays[i]
 
     def to_table(self, names=True):
-        title = self.metadata[self.identifier]['title']
         wanted_columns = self.booking.columns if names else self.columns
         header = [self.columns_translation.get(x, x) for x in wanted_columns]
         header.insert(0, '')
@@ -98,5 +97,6 @@ class Booking():
             row = ['' if str(x) == 'nan' else x for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
-        table = {'title': title, 'header': header, 'rows': rows}
+        table = {'header': header, 'rows': rows}
+        table.update(self.metadata[self.identifier])
         return table

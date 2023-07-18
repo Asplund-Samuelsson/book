@@ -2,6 +2,16 @@
 
 {% block content %}
     <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
+    <h3>Plats</h3>
+    <p>{{ booking['location'] }}</p>
+    <br>
+    <h3>Beskrivning</h3>
+    <p>{{ booking['description'] }}</p>
+    <br>
+    <form action="{{ url_for('answer', identifier=identifier) }}">
+      <button type="submit">Lämna svar</button>
+    </form>
+    <br>
     <table>
         <tr>
           {% for column in booking['header'] %}

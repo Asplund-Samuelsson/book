@@ -5,20 +5,19 @@ from dateutil import tz
 from pathlib import Path
 
 
-class Booking():
+class Database():
     def __init__(self):
-        self.identifier = ""
         self.bookingfile = Path("data/bookings.csv")
-        self.bookingcolumns = ['identifier', 'occasions', 'title', 'time_created', 'description', 'location']
+        self.bookingcolumns = ('identifier', 'occasions', 'title', 'time_created', 'description', 'location')
         self.occasionfile = Path("data/occasions.csv")
-        self.occasioncolumns = ['identifier', 'occasion', 'date', 'time_start', 'time_end']
+        self.occasioncolumns = ('identifier', 'occasion', 'date', 'time_start', 'time_end')
         self.answerfile = Path("data/answers.csv")
-        self.answercolumns = ['identifier', 'occasion', 'name', 'answer']
-        self.columns_translation = {
-            'date': 'Datum',
-            'time_start': 'Från',
-            'time_end': 'Till',
-            }
+        self.answercolumns = ('identifier', 'occasion', 'name', 'answer')
+        self.targets = {
+            self.bookingcolumns: self.bookingfile,
+            self.occasioncolumns: self.occasionfile,
+            self.answercolumns: self.answerfile
+        }
         self.column_types = {
             'identifier': str,
             'occasions': int,
@@ -30,30 +29,21 @@ class Booking():
             'name': str,
             'answer': bool
         }
-        self.replace_bool = {False: '', True: '\u2713'}
         if self.bookingfile.is_file():
             self.bookings = pd.read_csv(self.bookingfile)
+            self.bookings.fillna('')
         else:
             self.bookings = pd.DataFrame({k: [] for k in self.bookingcolumns})
+        self.bookings = self.cast_types(self.bookings)
 
-    def new(self):
-        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
-        self.identifier = str(uuid.uuid1())
-        self.bookings.loc[len(self.bookings)] = [self.identifier, 0, "", time_created, "", ""]
-        self.booking = pd.DataFrame({column: [] for column in self.occasioncolumns})
-        self.answers = pd.DataFrame({column: [] for column in self.answercolumns})
+    def update_title(self, title, identifier):
+        self.bookings.loc[self.bookings.identifier == identifier, ['title']] = title
 
-    def update_title(self, title):
-        self.bookings.loc[self.bookings.identifier == self.identifier, ['title']] = title
+    def update_description(self, description, identifier):
+        self.bookings.loc[self.bookings.identifier == identifier, ['description']] = description
 
-    def update_description(self, description):
-        self.bookings.loc[self.bookings.identifier == self.identifier, ['description']] = description
-
-    def update_location(self, location):
-        self.bookings.loc[self.bookings.identifier == self.identifier, ['location']] = location
-
-    def file(self, identifier):
-        return f"data/{identifier}.csv"
+    def update_location(self, location, identifier):
+        self.bookings.loc[self.bookings.identifier == identifier, ['location']] = location
 
     def cast_types(self, df):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
@@ -61,36 +51,77 @@ class Booking():
     def anti_join(self, df1, df2):
         # https://stackoverflow.com/a/55543744
         outer = df1.merge(df2, how='outer', indicator=True)
-        anti_join = outer[(outer._merge=='left_only')].drop('_merge', axis=1)
+        anti_join = outer[(outer._merge == 'left_only')].drop('_merge', axis=1)
         return anti_join
 
-    def commit(self, source, target):
+    def commit(self, source):
+        # TODO What if multiple users save at the same time?
+        target = self.targets[tuple(source.columns)]
         target_df = pd.read_csv(target)
         source_df = self.anti_join(source, target_df)
         target_df = pd.concat([target_df, source_df])
+        target_df = target_df.fillna('')
         target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 
+    def load_booking(self, identifier):
+        df = pd.read_csv(self.occasionfile)
+        booking = self.cast_types(df.loc[df.identifier == identifier])
+        return booking
+
+    def load_answers(self, identifier):
+        df = pd.read_csv(self.answerfile)
+        answers = self.cast_types(df.loc[df.identifier == identifier])
+        return answers
+
+    def get_occasion(self, identifier):
+        occasion = self.bookings.loc[self.bookings.identifier == identifier, ['occasions']].iloc[0, 0]
+        self.bookings.loc[self.bookings.identifier == identifier, ['occasions']] += 1
+        return occasion
+
+    def booking_details(self, identifier):
+        details = self.bookings.loc[self.bookings.identifier == identifier].to_dict('records')[0]
+        return details
+
+
+class Booking():
+    def __init__(self):
+        self.identifier = ""
+        self.columns_translation = {
+            'date': 'Datum',
+            'time_start': 'Från',
+            'time_end': 'Till',
+            }
+        self.replace_bool = {False: '', True: '\u2713'}
+        self.db = Database()
+
+    def new(self):
+        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
+        self.identifier = str(uuid.uuid1())
+        self.db.bookings.loc[len(self.db.bookings)] = [self.identifier, 0, "", time_created, "", ""]
+        self.booking = pd.DataFrame({column: [] for column in self.db.occasioncolumns})
+        self.answers = pd.DataFrame({column: [] for column in self.db.answercolumns})
+
     def save(self):
-        # TODO What if multiple users save at the same time?
-        self.commit(self.booking, self.occasionfile)
-        self.commit(self.answers, self.answerfile)
-        self.commit(self.bookings, self.bookingfile)
+        self.db.commit(self.booking)
+        self.db.commit(self.answers)
+        self.db.commit(self.db.bookings)
 
     def load(self, identifier):
         self.identifier = identifier
-        df = pd.read_csv(self.occasionfile)
-        self.booking = self.cast_types(df.loc[df.identifier == self.identifier])
-        df = pd.read_csv(self.answerfile)
-        self.answers = self.cast_types(df.loc[df.identifier == self.identifier])
+        self.booking = self.db.load_booking(identifier)
+        self.answers = self.db.load_answers(identifier)
+
+    def update_bookings(self, title, description, location):
+        self.db.update_title(title, self.identifier)
+        self.db.update_description(description, self.identifier)
+        self.db.update_location(location, self.identifier)
 
     def add_occasion(self, date, time_start, time_end):
-        occasion = self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']].iloc[0, 0]
-        self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']] += 1
+        occasion = self.db.get_occasion(self.identifier)
         new_occasion = pd.DataFrame(
             dict(zip(self.booking.columns, [[self.identifier], [occasion], [date], [time_start], [time_end]]))
             )
-        new_occasion = self.cast_types(new_occasion)
         self.booking = pd.concat([self.booking, new_occasion])
         self.booking = self.booking.sort_values(by=['date', 'time_start', 'time_end'])
 
@@ -98,7 +129,6 @@ class Booking():
         new_answer = pd.DataFrame(
             dict(zip(self.answers.columns, [[self.identifier], [occasion], [name], [answer]]))
             )
-        new_answer = self.cast_types(new_answer)
         self.answers = pd.concat([self.answers, new_answer])
 
     def to_local_time(self, time):
@@ -145,11 +175,11 @@ class Booking():
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         table = {'header': header, 'rows': rows}
-        table.update(self.bookings.loc[self.bookings.identifier == self.identifier].to_dict('records')[0])
+        table.update(self.db.booking_details(self.identifier))
         return table
 
     def index_list(self, n=5):
-        bookings_raw = self.bookings.sort_values(by='time_created', ascending=False).head(n).iterrows()
+        bookings_raw = self.db.bookings.sort_values(by='time_created', ascending=False).head(n).iterrows()
         bookings = []
         for booking in bookings_raw:
             booking = booking[1].to_dict()

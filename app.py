@@ -29,9 +29,7 @@ def create():
             flash('Titel krävs.')
         else:
             b.new()
-            b.update_title(title)
-            b.update_description(description)
-            b.update_location(location)
+            b.update_bookings(title, description, location)
             for occasion in zip(dates, start_times, end_times):
                 b.add_occasion(occasion[0], occasion[1], occasion[2])
             b.save()

@@ -47,7 +47,7 @@ class Booking():
     def commit(self, source, target):
         target_df = pd.read_csv(target)
         target_df = target_df.loc[target_df.identifier != self.identifier]
-        target_df = pd.concat(target_df, source)
+        target_df = pd.concat([target_df, source])
         target_df.to_csv(target, index=False)
 
     def save(self):
@@ -64,15 +64,19 @@ class Booking():
         self.answers = df.loc[df.identifier == self.identifier]
 
     def add_occasion(self, date, start_time, end_time):
-        last_row = len(self.booking)
-        occasion = self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']]
+        occasion = self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']].iloc[0, 0]
         self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']] += 1
-        self.booking.loc[last_row] = [self.identifier, occasion, date, start_time, end_time]
+        new_occasion = pd.DataFrame(
+            dict(zip(self.booking.columns, [[self.identifier], [occasion], [date], [start_time], [end_time]]))
+            )
+        self.booking = pd.concat([self.booking, new_occasion])
         self.booking = self.booking.sort_values(by=['date', 'start_time', 'end_time'])
 
     def add_answer(self, occasion, name, answer):
-        last_row = len(self.answers)
-        self.answers.loc[last_row] = [self.identifier, occasion, name, answer]
+        new_answer = pd.DataFrame(
+            dict(zip(self.answers.columns, [[self.identifier], [occasion], [name], [answer]]))
+            )
+        self.answers = pd.concat([self.answers, new_answer])
 
     def to_local_time(self, time):
         from_zone = tz.gettz('UTC')

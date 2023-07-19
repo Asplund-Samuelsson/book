@@ -52,14 +52,17 @@ def answer(identifier):
 
     if request.method == 'POST':
         name = request.form['name']
-        true_answers = [int(x) for x in request.form.getlist('answers')]
-        answers = [x in true_answers for x in range(len(b.booking))]
+        occasions = list(b.booking.occasion)
+        true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
+        answers = [x in true_answers for x in occasions]
 
         if not name:
             flash('Namn krävs.')
+        elif name in list(b.answers.name):
+            flash('Namnet är redan registrerat.')
         else:
-            for i in range(len(b.booking)):
-                b.add_answer(i, name, answers[i])
+            for occasion, answer in zip(occasions, answers):
+                b.add_answer(occasion, name, answer)
             b.save()
             return redirect(url_for('show', identifier=b.identifier))
 

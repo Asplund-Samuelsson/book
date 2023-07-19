@@ -11,14 +11,25 @@ class Booking():
         self.bookingfile = Path("data/bookings.csv")
         self.bookingcolumns = ['identifier', 'occasions', 'title', 'time_created', 'description', 'location']
         self.occasionfile = Path("data/occasions.csv")
-        self.occasioncolumns = ['identifier', 'occasion', 'date', 'start_time', 'end_time']
+        self.occasioncolumns = ['identifier', 'occasion', 'date', 'time_start', 'time_end']
         self.answerfile = Path("data/answers.csv")
         self.answercolumns = ['identifier', 'occasion', 'name', 'answer']
         self.columns_translation = {
             'date': 'Datum',
-            'start_time': 'Från',
-            'end_time': 'Till',
+            'time_start': 'Från',
+            'time_end': 'Till',
             }
+        self.column_types = {
+            'identifier': str,
+            'occasions': int,
+            'occasion': int,
+            'title': str,
+            'time_created': str,
+            'description': str,
+            'location': str,
+            'name': str,
+            'answer': bool
+        }
         self.replace_bool = {False: '', True: '\u2713'}
         if self.bookingfile.is_file():
             self.bookings = pd.read_csv(self.bookingfile)
@@ -44,38 +55,44 @@ class Booking():
     def file(self, identifier):
         return f"data/{identifier}.csv"
 
+    def cast_types(self, df):
+        return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
+
     def commit(self, source, target):
         target_df = pd.read_csv(target)
         target_df = target_df.loc[target_df.identifier != self.identifier]
         target_df = pd.concat([target_df, source])
+        target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 
     def save(self):
         # TODO What if multiple users save at the same time?
         self.commit(self.booking, self.occasionfile)
         self.commit(self.answers, self.answerfile)
-        self.bookings.to_csv(self.bookingfile, index=False)
+        self.commit(self.bookings, self.bookingfile)
 
     def load(self, identifier):
         self.identifier = identifier
         df = pd.read_csv(self.occasionfile)
-        self.booking = df.loc[df.identifier == self.identifier]
+        self.booking = self.cast_types(df.loc[df.identifier == self.identifier])
         df = pd.read_csv(self.answerfile)
-        self.answers = df.loc[df.identifier == self.identifier]
+        self.answers = self.cast_types(df.loc[df.identifier == self.identifier])
 
-    def add_occasion(self, date, start_time, end_time):
+    def add_occasion(self, date, time_start, time_end):
         occasion = self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']].iloc[0, 0]
         self.bookings.loc[self.bookings.identifier == self.identifier, ['occasions']] += 1
         new_occasion = pd.DataFrame(
-            dict(zip(self.booking.columns, [[self.identifier], [occasion], [date], [start_time], [end_time]]))
+            dict(zip(self.booking.columns, [[self.identifier], [occasion], [date], [time_start], [time_end]]))
             )
+        new_occasion = self.cast_types(new_occasion)
         self.booking = pd.concat([self.booking, new_occasion])
-        self.booking = self.booking.sort_values(by=['date', 'start_time', 'end_time'])
+        self.booking = self.booking.sort_values(by=['date', 'time_start', 'time_end'])
 
     def add_answer(self, occasion, name, answer):
         new_answer = pd.DataFrame(
             dict(zip(self.answers.columns, [[self.identifier], [occasion], [name], [answer]]))
             )
+        new_answer = self.cast_types(new_answer)
         self.answers = pd.concat([self.answers, new_answer])
 
     def to_local_time(self, time):
@@ -99,7 +116,7 @@ class Booking():
         return weekdays[i]
 
     def to_table(self, names=True):
-        wanted_columns = ['date', 'start_time', 'end_time']
+        wanted_columns = ['date', 'time_start', 'time_end']
         if names:
             wanted_columns.extend(list(self.answers.name.unique()))
         header = [self.columns_translation.get(x, x) for x in wanted_columns]

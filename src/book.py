@@ -58,10 +58,16 @@ class Booking():
     def cast_types(self, df):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
 
+    def anti_join(self, df1, df2):
+        # https://stackoverflow.com/a/55543744
+        outer = df1.merge(df2, how='outer', indicator=True)
+        anti_join = outer[(outer._merge=='left_only')].drop('_merge', axis=1)
+        return anti_join
+
     def commit(self, source, target):
         target_df = pd.read_csv(target)
-        target_df = target_df.loc[target_df.identifier != self.identifier]
-        target_df = pd.concat([target_df, source])
+        source_df = self.anti_join(source, target_df)
+        target_df = pd.concat([target_df, source_df])
         target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 

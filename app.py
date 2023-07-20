@@ -32,7 +32,6 @@ def create():
             b.update_bookings(title, description, location)
             for occasion in zip(dates, start_times, end_times):
                 b.add_occasion(occasion[0], occasion[1], occasion[2])
-            b.save()
             return redirect(url_for('show', identifier=b.identifier))
 
     return render_template('create.html')
@@ -50,18 +49,17 @@ def answer(identifier):
 
     if request.method == 'POST':
         name = request.form['name']
-        occasions = list(b.occasions.occasion)
+        occasions = list(b.db.get_occasions(identifier).occasion)
         true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
         answers = [x in true_answers for x in occasions]
 
         if not name:
             flash('Namn krävs.')
-        elif name in list(b.answers.name):
+        elif name in list(b.db.get_answers(identifier).name):
             flash('Namnet är redan registrerat.')
         else:
             for occasion, answer in zip(occasions, answers):
                 b.add_answer(occasion, name, answer)
-            b.save()
-            return redirect(url_for('show', identifier=b.identifier))
+            return redirect(url_for('show', identifier=identifier))
 
     return render_template('answer.html', booking=b.to_table())

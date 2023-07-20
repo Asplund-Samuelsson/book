@@ -50,7 +50,7 @@ def answer(identifier):
 
     if request.method == 'POST':
         name = request.form['name']
-        occasions = list(b.booking.occasion)
+        occasions = list(b.occasions.occasion)
         true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
         answers = [x in true_answers for x in occasions]
 

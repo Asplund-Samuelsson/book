@@ -64,10 +64,10 @@ class Database():
         target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 
-    def load_booking(self, identifier):
+    def load_occasions(self, identifier):
         df = pd.read_csv(self.occasionfile)
-        booking = self.cast_types(df.loc[df.identifier == identifier])
-        return booking
+        occasions = self.cast_types(df.loc[df.identifier == identifier])
+        return occasions
 
     def load_answers(self, identifier):
         df = pd.read_csv(self.answerfile)
@@ -99,17 +99,17 @@ class Booking():
         time_created = datetime.utcnow().replace(microsecond=0).isoformat()
         self.identifier = str(uuid.uuid1())
         self.db.bookings.loc[len(self.db.bookings)] = [self.identifier, 0, "", time_created, "", ""]
-        self.booking = pd.DataFrame({column: [] for column in self.db.occasioncolumns})
+        self.occasions = pd.DataFrame({column: [] for column in self.db.occasioncolumns})
         self.answers = pd.DataFrame({column: [] for column in self.db.answercolumns})
 
     def save(self):
-        self.db.commit(self.booking)
+        self.db.commit(self.occasions)
         self.db.commit(self.answers)
         self.db.commit(self.db.bookings)
 
     def load(self, identifier):
         self.identifier = identifier
-        self.booking = self.db.load_booking(identifier)
+        self.occasions = self.db.load_occasions(identifier)
         self.answers = self.db.load_answers(identifier)
 
     def update_bookings(self, title, description, location):
@@ -120,10 +120,10 @@ class Booking():
     def add_occasion(self, date, time_start, time_end):
         occasion = self.db.get_occasion(self.identifier)
         new_occasion = pd.DataFrame(
-            dict(zip(self.booking.columns, [[self.identifier], [occasion], [date], [time_start], [time_end]]))
+            dict(zip(self.occasions.columns, [[self.identifier], [occasion], [date], [time_start], [time_end]]))
             )
-        self.booking = pd.concat([self.booking, new_occasion])
-        self.booking = self.booking.sort_values(by=['date', 'time_start', 'time_end'])
+        self.occasions = pd.concat([self.occasions, new_occasion])
+        self.occasions = self.occasions.sort_values(by=['date', 'time_start', 'time_end'])
 
     def add_answer(self, occasion, name, answer):
         new_answer = pd.DataFrame(
@@ -158,7 +158,7 @@ class Booking():
         header = [self.columns_translation.get(x, x) for x in wanted_columns]
         header.insert(0, '')
         rows = []
-        for occasion in self.booking.iterrows():
+        for occasion in self.occasions.iterrows():
             occasion = occasion[1].to_dict()
             row = [occasion[x] for x in wanted_columns[:3]]
             for name in wanted_columns[3:]:

@@ -31,7 +31,7 @@ class Database():
         }
         if self.bookingfile.is_file():
             self.bookings = pd.read_csv(self.bookingfile)
-            self.bookings.fillna('')
+            self.bookings = self.bookings.fillna('')
         else:
             self.bookings = pd.DataFrame({k: [] for k in self.bookingcolumns})
         self.bookings = self.cast_types(self.bookings)

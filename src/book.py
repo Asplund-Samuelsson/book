@@ -71,26 +71,31 @@ class Database():
     def update(self, source_df: pd.DataFrame):
         self.modify(source_df)
 
-    def get_bookings(self):
+    def get_bookings(self, identifier=''):
         df = self.load(self.bookingfile)
+        if identifier != '':
+            df = df.loc[df.identifier == identifier]
         bookings = self.cast_types(df)
         return bookings
 
-    def get_occasions(self, identifier):
+    def get_occasions(self, identifier=''):
         df = self.load(self.occasionfile)
-        occasions = self.cast_types(df.loc[df.identifier == identifier])
+        if identifier != '':
+            df = df.loc[df.identifier == identifier]
+        occasions = self.cast_types(df)
         return occasions
 
-    def get_answers(self, identifier):
+    def get_answers(self, identifier=''):
         df = self.load(self.answerfile)
-        answers = self.cast_types(df.loc[df.identifier == identifier])
+        if identifier != '':
+            df = df.loc[df.identifier == identifier]
+        answers = self.cast_types(df)
         return answers
 
     def get_occasion(self, identifier):
-        bookings = self.get_bookings()
-        occasion = bookings.loc[bookings.identifier == identifier, ['occasions']].iloc[0, 0]
-        bookings.loc[bookings.identifier == identifier, ['occasions']] += 1
-        self.update(bookings)
+        booking = self.get_bookings(identifier)
+        occasion = booking['occasions'].iloc[0]
+        self.update_bookings({'occasions': occasion + 1}, identifier)
         return occasion
 
     def booking_details(self, identifier):

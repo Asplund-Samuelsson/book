@@ -53,17 +53,17 @@ class Database():
         bookings.loc[bookings.identifier == identifier, ['location']] = location
         self.update(bookings)
 
-    def cast_types(self, df):
+    def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
 
-    def load(self, file):
+    def load(self, file: Path):
         if file.is_file():
             df = pd.read_csv(file).fillna('')
         else:
             df = pd.DataFrame({column: [] for column in self.columns_from_file(file)})
         return df
 
-    def modify(self, source_df, add=False):
+    def modify(self, source_df: pd.DataFrame, add=False):
         # TODO What if multiple users modify at the same time?
         target = self.file_from_columns[tuple(source_df.columns)]
         if add:
@@ -74,10 +74,10 @@ class Database():
         target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 
-    def add(self, source_df):
+    def add(self, source_df: pd.DataFrame):
         self.modify(source_df, add=True)
 
-    def update(self, source_df):
+    def update(self, source_df: pd.DataFrame):
         self.modify(source_df)
 
     def get_bookings(self):

@@ -1,5 +1,7 @@
 import uuid
 import pandas as pd
+import sqlite3
+from contextlib import closing
 from datetime import datetime
 from dateutil import tz
 from pathlib import Path
@@ -7,6 +9,12 @@ from pathlib import Path
 
 class Database():
     def __init__(self):
+        self.databasefile = Path("data/tables.db")
+        self.schemafile = Path("src/schema.sql")
+
+        if not self.databasefile.is_file():
+            self.init_db()
+
         self.bookingfile = Path("data/bookings.csv")
         self.bookingcolumns = ('identifier', 'occasions', 'title', 'time_created', 'description', 'location')
         self.occasionfile = Path("data/occasions.csv")
@@ -30,6 +38,15 @@ class Database():
             'name': str,
             'answer': bool
         }
+
+    def connect_db(self):
+        return sqlite3.connect(self.databasefile)
+
+    def init_db(self):
+        with closing(self.connect_db()) as db:
+            with open(self.schemafile, 'r') as schema:
+                db.cursor().executescript(schema.read())
+            db.commit()
 
     def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})

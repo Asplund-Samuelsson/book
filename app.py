@@ -49,13 +49,13 @@ def answer(identifier):
 
     if request.method == 'POST':
         name = request.form['name']
-        occasions = list(b.db.get_occasions(identifier).occasion)
+        occasions = b.occasions_list()
         true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
         answers = [x in true_answers for x in occasions]
 
         if not name:
             flash('Namn krävs.')
-        elif name in list(b.db.get_answers(identifier).name):
+        elif name in b.names_list():
             flash('Namnet är redan registrerat.')
         else:
             for occasion, answer in zip(occasions, answers):

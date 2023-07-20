@@ -31,19 +31,6 @@ class Database():
             'answer': bool
         }
 
-    def new(self, identifier):
-        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
-        new_booking = pd.DataFrame(
-            {k: [v] for k, v in zip(self.bookingcolumns, [identifier, 0, "", time_created, "", ""])}
-            )
-        self.add(new_booking)
-
-    def update_bookings(self, variables: dict, identifier):
-        bookings = self.get_bookings()
-        for column, value in variables.items():
-            bookings.loc[bookings.identifier == identifier, [column]] = value
-        self.update(bookings)
-
     def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
 
@@ -71,6 +58,19 @@ class Database():
     def update(self, source_df: pd.DataFrame):
         self.modify(source_df)
 
+    def new(self, identifier):
+        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
+        new_booking = pd.DataFrame(
+            {k: [v] for k, v in zip(self.bookingcolumns, [identifier, 0, "", time_created, "", ""])}
+            )
+        self.add(new_booking)
+
+    def update_bookings(self, variables: dict, identifier):
+        bookings = self.get_bookings()
+        for column, value in variables.items():
+            bookings.loc[bookings.identifier == identifier, [column]] = value
+        self.update(bookings)
+
     def get(self, file, identifier=''):
         df = self.load(file)
         if identifier != '':
@@ -92,7 +92,7 @@ class Database():
         self.update_bookings({'occasions': occasion + 1}, identifier)
         return occasion
 
-    def booking_details(self, identifier):
+    def get_booking(self, identifier):
         bookings = self.get_bookings()
         details = bookings.loc[bookings.identifier == identifier].to_dict('records')[0]
         return details
@@ -179,7 +179,7 @@ class Booking():
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         table = {'header': header, 'rows': rows}
-        table.update(self.db.booking_details(self.identifier))
+        table.update(self.db.get_booking(self.identifier))
         return table
 
     def index_list(self, n=5):
@@ -194,3 +194,9 @@ class Booking():
                 'description': booking['description'],
                 })
         return bookings_list
+
+    def occasions_list(self):
+        return list(self.db.get_occasions(self.identifier).occasion)
+
+    def names_list(self):
+        return list(self.db.get_answers(self.identifier).name)

@@ -28,7 +28,7 @@ def create():
         if not title:
             flash('Titel krävs.')
         else:
-            b.new()
+            b.new_context()
             b.update_bookings(title, description, location)
             for occasion in zip(dates, start_times, end_times):
                 b.add_occasion(occasion[0], occasion[1], occasion[2])
@@ -39,13 +39,13 @@ def create():
 
 @app.route('/show/<identifier>')
 def show(identifier):
-    b.load(identifier)
-    return render_template('show.html', booking=b.to_table(), identifier=b.identifier)
+    b.set_context(identifier)
+    return render_template('show.html', booking=b.to_table(), identifier=identifier)
 
 
 @app.route('/answer/<identifier>', methods=['GET', 'POST'])
 def answer(identifier):
-    b.load(identifier)
+    b.set_context(identifier)
 
     if request.method == 'POST':
         name = request.form['name']

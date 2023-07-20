@@ -109,11 +109,11 @@ class Booking():
         self.replace_bool = {False: '', True: '\u2713'}
         self.db = Database()
 
-    def new(self):
+    def new_context(self):
         self.identifier = str(uuid.uuid1())
         self.db.new(self.identifier)
 
-    def load(self, identifier):
+    def set_context(self, identifier):
         self.identifier = identifier
 
     def update_bookings(self, title, description, location):

@@ -38,19 +38,10 @@ class Database():
             )
         self.add(new_booking)
 
-    def update_title(self, title, identifier):
+    def update_bookings(self, variables: dict, identifier):
         bookings = self.get_bookings()
-        bookings.loc[bookings.identifier == identifier, ['title']] = title
-        self.update(bookings)
-
-    def update_description(self, description, identifier):
-        bookings = self.get_bookings()
-        bookings.loc[bookings.identifier == identifier, ['description']] = description
-        self.update(bookings)
-
-    def update_location(self, location, identifier):
-        bookings = self.get_bookings()
-        bookings.loc[bookings.identifier == identifier, ['location']] = location
+        for column, value in variables.items():
+            bookings.loc[bookings.identifier == identifier, [column]] = value
         self.update(bookings)
 
     def cast_types(self, df: pd.DataFrame):
@@ -127,9 +118,8 @@ class Booking():
         self.identifier = identifier
 
     def update_bookings(self, title, description, location):
-        self.db.update_title(title, self.identifier)
-        self.db.update_description(description, self.identifier)
-        self.db.update_location(location, self.identifier)
+        update_items = {'title': title, 'description': description, 'location': location}
+        self.db.update_bookings(update_items, self.identifier)
 
     def add_occasion(self, date, time_start, time_end):
         occasion = self.db.get_occasion(self.identifier)

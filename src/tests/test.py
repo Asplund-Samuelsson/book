@@ -1,4 +1,3 @@
-import pandas as pd
 from importlib import reload
 import src.book
 

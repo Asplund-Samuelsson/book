@@ -57,10 +57,9 @@ class Database():
     def commit(self, source):
         # TODO What if multiple users save at the same time?
         target = self.targets[tuple(source.columns)]
-        target_df = pd.read_csv(target)
+        target_df = pd.read_csv(target).fillna('')
         source_df = self.anti_join(source, target_df)
         target_df = pd.concat([target_df, source_df])
-        target_df = target_df.fillna('')
         target_df = self.cast_types(target_df)
         target_df.to_csv(target, index=False)
 

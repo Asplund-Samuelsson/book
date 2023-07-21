@@ -16,19 +16,21 @@ class Database():
         if not self.databasefile.is_file():
             self.init_db()
 
-        with closing(self.connect_db()) as db:
-            def columns(table):
-                cursor = db.execute(f'select * from {table} limit 1;')
-                return tuple(x[0] for x in cursor.description)
-            self.bookings_columns = columns('bookings')
-            self.occasions_columns = columns('occasions')
-            self.answers_columns = columns('answers')
-            self.table_from_columns = {
-                self.bookings_columns: 'bookings',
-                self.occasions_columns: 'occasions',
-                self.answers_columns: 'answers',
+        self.bookings_columns = ('booking_id', 'occasions', 'title', 'time_created', 'description', 'location')
+        self.occasions_columns = ('occasion_id', 'booking_id', 'occasion', 'date', 'time_start', 'time_end')
+        self.answers_columns = ('answer_id', 'booking_id', 'occasion', 'name', 'answer')
+        self.table_from_columns = {
+            self.bookings_columns: 'bookings',
+            self.occasions_columns[1:]: 'occasions',
+            self.answers_columns[1:]: 'answers',
             }
-            self.columns_from_table = {v: k for k, v in self.table_from_columns.items()}
+        self.columns_from_table = {v: k for k, v in self.table_from_columns.items()}
+        
+        self.convert_types = {
+            str: lambda value: f"'{str(value)}'",
+            int: lambda value: str(value),
+            bool: lambda value: str(int(value)),
+            }
 
         # CSV
         self.bookingfile = Path("data/bookings.csv")
@@ -41,7 +43,7 @@ class Database():
             self.bookingcolumns: self.bookingfile,
             self.occasioncolumns: self.occasionfile,
             self.answercolumns: self.answerfile,
-        }
+            }
         self.columns_from_file = {v: k for k, v in self.file_from_columns.items()}
         self.column_types = {
             'booking_id': str,
@@ -53,9 +55,12 @@ class Database():
             'time_created': str,
             'description': str,
             'location': str,
+            'date': str,
+            'time_start': str,
+            'time_end': str,
             'name': str,
             'answer': bool,
-        }
+            }
 
     def connect_db(self):
         return sqlite3.connect(self.databasefile)
@@ -69,6 +74,12 @@ class Database():
     def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
 
+    def format_columns(self, columns):
+        return ', '.join(['"' + x + '"' for x in columns])
+    
+    def format_values(self, columns, values):
+        return ', '.join([self.convert_types[self.column_types[col]](val) for col, val in zip(columns, values)])
+
     def load(self, file: Path):
         if file.is_file():
             df = pd.read_csv(file).fillna('')
@@ -78,17 +89,27 @@ class Database():
 
     def modify(self, source_df: pd.DataFrame, add=False):
         # TODO What if multiple users modify at the same time?
-        target = self.file_from_columns[tuple(source_df.columns)]
+        target_file = self.file_from_columns[tuple(source_df.columns)]
         if add:
-            target_df = self.load(target)
+            target_df = self.load(target_file)
             target_df = pd.concat([target_df, source_df])
         else:
             target_df = source_df
         target_df = self.cast_types(target_df)
-        target_df.to_csv(target, index=False)
+        target_df.to_csv(target_file, index=False)
 
     def add(self, source_df: pd.DataFrame):
+        # CSV
         self.modify(source_df, add=True)
+        # SQL
+        target_table = self.table_from_columns[tuple(source_df.columns)]
+        with closing(self.connect_db()) as db:
+            query = f"""
+            insert into {target_table} ({self.format_columns(source_df.columns)})
+            values ({self.format_values(source_df.columns, list(source_df.iloc[0]))});
+            """
+            db.execute(query)
+            db.commit()
 
     def update(self, source_df: pd.DataFrame):
         self.modify(source_df)

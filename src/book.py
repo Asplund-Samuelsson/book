@@ -1,7 +1,5 @@
 import uuid
 import pandas as pd
-import sqlite3
-from contextlib import closing
 from datetime import datetime
 from dateutil import tz
 from pathlib import Path
@@ -12,25 +10,6 @@ class Database():
         # SQL
         self.databasefile = Path("data/tables.db")
         self.schemafile = Path("src/schema.sql")
-
-        if not self.databasefile.is_file():
-            self.init_db()
-
-        self.bookings_columns = ('booking_id', 'occasions', 'title', 'time_created', 'description', 'location')
-        self.occasions_columns = ('occasion_id', 'booking_id', 'occasion', 'date', 'time_start', 'time_end')
-        self.answers_columns = ('answer_id', 'booking_id', 'occasion', 'name', 'answer')
-        self.table_from_columns = {
-            self.bookings_columns: 'bookings',
-            self.occasions_columns[1:]: 'occasions',
-            self.answers_columns[1:]: 'answers',
-            }
-        self.columns_from_table = {v: k for k, v in self.table_from_columns.items()}
-        
-        self.convert_types = {
-            str: lambda value: f"'{str(value)}'",
-            int: lambda value: str(value),
-            bool: lambda value: str(int(value)),
-            }
 
         # CSV
         self.bookingfile = Path("data/bookings.csv")
@@ -62,23 +41,8 @@ class Database():
             'answer': bool,
             }
 
-    def connect_db(self):
-        return sqlite3.connect(self.databasefile)
-
-    def init_db(self):
-        with closing(self.connect_db()) as db:
-            with open(self.schemafile, 'r') as schema:
-                db.cursor().executescript(schema.read())
-            db.commit()
-
     def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
-
-    def format_columns(self, columns):
-        return ', '.join(['"' + x + '"' for x in columns])
-    
-    def format_values(self, columns, values):
-        return ', '.join([self.convert_types[self.column_types[col]](val) for col, val in zip(columns, values)])
 
     def load(self, file: Path):
         if file.is_file():
@@ -99,17 +63,7 @@ class Database():
         target_df.to_csv(target_file, index=False)
 
     def add(self, source_df: pd.DataFrame):
-        # CSV
         self.modify(source_df, add=True)
-        # SQL
-        target_table = self.table_from_columns[tuple(source_df.columns)]
-        with closing(self.connect_db()) as db:
-            query = f"""
-            insert into {target_table} ({self.format_columns(source_df.columns)})
-            values ({self.format_values(source_df.columns, list(source_df.iloc[0]))});
-            """
-            db.execute(query)
-            db.commit()
 
     def update(self, source_df: pd.DataFrame):
         self.modify(source_df)

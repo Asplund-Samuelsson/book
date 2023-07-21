@@ -13,7 +13,7 @@ class Database():
 
         # CSV
         self.bookingfile = Path("data/bookings.csv")
-        self.bookingcolumns = ('booking_id', 'occasions', 'title', 'time_created', 'description', 'location')
+        self.bookingcolumns = ('booking_id', 'next_occasion', 'title', 'time_created', 'description', 'location')
         self.occasionfile = Path("data/occasions.csv")
         self.occasioncolumns = ('booking_id', 'occasion', 'date', 'time_start', 'time_end')
         self.answerfile = Path("data/answers.csv")
@@ -28,7 +28,7 @@ class Database():
             'booking_id': str,
             'occasion_id': int,
             'answer_id': int,
-            'occasions': int,
+            'next_occasion': int,
             'occasion': int,
             'title': str,
             'time_created': str,
@@ -98,8 +98,8 @@ class Database():
 
     def get_occasion(self, booking_id):
         booking = self.get_bookings(booking_id)
-        occasion = booking['occasions'].iloc[0]
-        self.update_bookings({'occasions': occasion + 1}, booking_id)
+        occasion = booking['next_occasion'].iloc[0]
+        self.update_bookings({'next_occasion': occasion + 1}, booking_id)
         return occasion
 
     def get_booking(self, booking_id):

@@ -1,5 +1,5 @@
 create table bookings (
-    "identifier" varchar not null primary key,
+    "booking_id" varchar not null primary key,
     "time_created" varchar not null,
     "occasions" integer not null,
     "title" varchar,
@@ -8,7 +8,8 @@ create table bookings (
 );
 
 create table occasions (
-    "identifier" varchar not null,
+    "occasion_id" integer not null primary key,
+    "booking_id" varchar not null,
     "occasion" integer not null,
     "date" varchar,
     "time_start" varchar,
@@ -16,7 +17,8 @@ create table occasions (
 );
 
 create table answers (
-    "identifier" varchar not null,
+    "answer_id" integer not null primary key,
+    "booking_id" varchar not null,
     "occasion" integer not null,
     "name" varchar not null,
     "answer" boolean not null check ("answer" in (0, 1))

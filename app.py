@@ -32,20 +32,20 @@ def create():
             b.update_bookings(title, description, location)
             for occasion in zip(dates, start_times, end_times):
                 b.add_occasion(occasion[0], occasion[1], occasion[2])
-            return redirect(url_for('show', identifier=b.identifier))
+            return redirect(url_for('show', booking_id=b.booking_id))
 
     return render_template('create.html')
 
 
-@app.route('/show/<identifier>')
-def show(identifier):
-    b.set_context(identifier)
-    return render_template('show.html', booking=b.to_table(), identifier=identifier)
+@app.route('/show/<booking_id>')
+def show(booking_id):
+    b.set_context(booking_id)
+    return render_template('show.html', booking=b.to_table(), booking_id=booking_id)
 
 
-@app.route('/answer/<identifier>', methods=['GET', 'POST'])
-def answer(identifier):
-    b.set_context(identifier)
+@app.route('/answer/<booking_id>', methods=['GET', 'POST'])
+def answer(booking_id):
+    b.set_context(booking_id)
 
     if request.method == 'POST':
         name = request.form['name']
@@ -60,6 +60,6 @@ def answer(identifier):
         else:
             for occasion, answer in zip(occasions, answers):
                 b.add_answer(occasion, name, answer)
-            return redirect(url_for('show', identifier=identifier))
+            return redirect(url_for('show', booking_id=booking_id))
 
     return render_template('answer.html', booking=b.to_table())

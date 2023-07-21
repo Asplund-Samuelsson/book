@@ -8,7 +8,7 @@
     <h3>Beskrivning</h3>
     <p>{{ booking['description'] }}</p>
     <br>
-    <form action="{{ url_for('answer', identifier=identifier) }}">
+    <form action="{{ url_for('answer', booking_id=booking_id) }}">
       <button type="submit">Lämna svar</button>
     </form>
     <br>

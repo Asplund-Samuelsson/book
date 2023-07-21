@@ -3,27 +3,17 @@ import pandas as pd
 from datetime import datetime
 from dateutil import tz
 from pathlib import Path
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+from src.models import Base, Booking, Occasion, Answer
 
 
 class Database():
     def __init__(self):
-        # SQL
-        self.databasefile = Path("data/tables.db")
-        self.schemafile = Path("src/schema.sql")
-
-        # CSV
-        self.bookingfile = Path("data/bookings.csv")
+        # General
         self.bookingcolumns = ('booking_id', 'next_occasion', 'title', 'time_created', 'description', 'location')
-        self.occasionfile = Path("data/occasions.csv")
         self.occasioncolumns = ('booking_id', 'occasion', 'date', 'time_start', 'time_end')
-        self.answerfile = Path("data/answers.csv")
         self.answercolumns = ('booking_id', 'occasion', 'name', 'answer')
-        self.file_from_columns = {
-            self.bookingcolumns: self.bookingfile,
-            self.occasioncolumns: self.occasionfile,
-            self.answercolumns: self.answerfile,
-            }
-        self.columns_from_file = {v: k for k, v in self.file_from_columns.items()}
         self.column_types = {
             'booking_id': str,
             'occasion_id': int,
@@ -40,6 +30,26 @@ class Database():
             'name': str,
             'answer': bool,
             }
+
+        # SQL
+        self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
+        Base.metadata.create_all(self.engine)
+        self.model_from_columns = {
+            self.bookingcolumns: Booking,
+            self.occasioncolumns: Occasion,
+            self.answercolumns: Answer,
+            }
+
+        # CSV
+        self.bookingfile = Path("data/bookings.csv")
+        self.occasionfile = Path("data/occasions.csv")
+        self.answerfile = Path("data/answers.csv")
+        self.file_from_columns = {
+            self.bookingcolumns: self.bookingfile,
+            self.occasioncolumns: self.occasionfile,
+            self.answercolumns: self.answerfile,
+            }
+        self.columns_from_file = {v: k for k, v in self.file_from_columns.items()}
 
     def cast_types(self, df: pd.DataFrame):
         return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
@@ -63,7 +73,14 @@ class Database():
         target_df.to_csv(target_file, index=False)
 
     def add(self, source_df: pd.DataFrame):
+        # CSV
         self.modify(source_df, add=True)
+        # SQL
+        Model = self.model_from_columns[tuple(source_df.columns)]
+        rows = [Model(**dict(x[1])) for x in source_df.iterrows()]
+        with Session(self.engine) as session:
+            session.add_all(rows)
+            session.commit()
 
     def update(self, source_df: pd.DataFrame):
         self.modify(source_df)
@@ -76,10 +93,17 @@ class Database():
         self.add(new_booking)
 
     def update_bookings(self, variables: dict, booking_id):
+        # CSV
         bookings = self.get_bookings()
         for column, value in variables.items():
             bookings.loc[bookings.booking_id == booking_id, [column]] = value
         self.update(bookings)
+        # SQL
+        with Session(self.engine) as session:
+            row = session.execute(select(Booking).filter_by(booking_id=booking_id)).scalar_one()
+            for column, value in variables.items():
+                setattr(row, column, value)
+            session.commit()
 
     def get(self, file, booking_id=''):
         df = self.load(file)
@@ -108,7 +132,7 @@ class Database():
         return details
 
 
-class Booking():
+class BookingManager():
     def __init__(self):
         self.booking_id = ""
         self.columns_translation = {

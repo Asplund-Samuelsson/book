@@ -2,12 +2,12 @@ import secrets
 
 from flask import Flask, render_template, request, url_for, flash, redirect
 
-from src.book import Booking
+from src.book import BookingManager
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
 
-b = Booking()
+b = BookingManager()
 
 
 @app.route('/')

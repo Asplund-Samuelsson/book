@@ -15,6 +15,20 @@ class Database():
         if not self.databasefile.is_file():
             self.init_db()
 
+        with closing(self.connect_db()) as db:
+            def columns(table):
+                cursor = db.execute(f'select * from {table} limit 1;')
+                return tuple(x[0] for x in cursor.description)
+            self.bookings_columns = columns('bookings')
+            self.occasions_columns = columns('occasions')
+            self.answers_columns = columns('answers')
+            self.table_from_columns = {
+                self.bookings_columns: 'bookings',
+                self.occasions_columns: 'occasions',
+                self.answers_columns: 'answers',
+            }
+            self.columns_from_table = {v: k for k, v in self.table_from_columns.items()}
+
         self.bookingfile = Path("data/bookings.csv")
         self.bookingcolumns = ('identifier', 'occasions', 'title', 'time_created', 'description', 'location')
         self.occasionfile = Path("data/occasions.csv")

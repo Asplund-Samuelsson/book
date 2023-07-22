@@ -30,6 +30,7 @@ class Database():
             'name': str,
             'answer': bool,
             }
+        self.read_sql = False
 
         # SQL
         self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
@@ -106,9 +107,14 @@ class Database():
             session.commit()
 
     def get(self, file, booking_id=''):
-        df = self.load(file)
-        if booking_id != '':
-            df = df.loc[df.booking_id == booking_id]
+        # CSV
+        if not self.read_sql:
+            df = self.load(file)
+            if booking_id != '':
+                df = df.loc[df.booking_id == booking_id]
+        # SQL
+        else:
+            pass
         return self.cast_types(df)
 
     def get_bookings(self, booking_id=''):
@@ -121,14 +127,24 @@ class Database():
         return self.get(self.answerfile, booking_id)
 
     def get_occasion(self, booking_id):
-        booking = self.get_bookings(booking_id)
-        occasion = booking['next_occasion'].iloc[0]
-        self.update_bookings({'next_occasion': occasion + 1}, booking_id)
+        # CSV
+        if not self.read_sql:
+            booking = self.get_bookings(booking_id)
+            occasion = booking['next_occasion'].iloc[0]
+            self.update_bookings({'next_occasion': occasion + 1}, booking_id)
+        # SQL
+        else:
+            pass
         return occasion
 
     def get_booking(self, booking_id):
-        bookings = self.get_bookings()
-        details = bookings.loc[bookings.booking_id == booking_id].to_dict('records')[0]
+        # CSV
+        if not self.read_sql:
+            bookings = self.get_bookings()
+            details = bookings.loc[bookings.booking_id == booking_id].to_dict('records')[0]
+        # SQL
+        else:
+            pass
         return details
 
 

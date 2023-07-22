@@ -30,7 +30,7 @@ class Database():
             'name': str,
             'answer': bool,
             }
-        self.read_sql = False
+        self.read_sql = True
 
         # SQL
         self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
@@ -77,8 +77,8 @@ class Database():
         # CSV
         self.modify(source_df, add=True)
         # SQL
-        Model = self.model_from_columns[tuple(source_df.columns)]
-        rows = [Model(**dict(x[1])) for x in source_df.iterrows()]
+        Table = self.model_from_columns[tuple(source_df.columns)]
+        rows = [Table(**dict(x[1])) for x in source_df.iterrows()]
         with Session(self.engine) as session:
             session.add_all(rows)
             session.commit()
@@ -114,7 +114,15 @@ class Database():
                 df = df.loc[df.booking_id == booking_id]
         # SQL
         else:
-            pass
+            columns = self.columns_from_file[file]
+            Table = self.model_from_columns[columns]
+            with Session(self.engine) as session:
+                if booking_id != '':
+                    rows = [x[0] for x in session.execute(select(Table).filter_by(booking_id=booking_id)).all()]
+                else:
+                    rows = session.query(Table).all()
+            data = [[getattr(row, col) for row in rows] for col in columns]
+            df = pd.DataFrame(dict(zip(columns, data)))
         return self.cast_types(df)
 
     def get_bookings(self, booking_id=''):
@@ -127,24 +135,14 @@ class Database():
         return self.get(self.answerfile, booking_id)
 
     def get_occasion(self, booking_id):
-        # CSV
-        if not self.read_sql:
-            booking = self.get_bookings(booking_id)
-            occasion = int(booking['next_occasion'].iloc[0])
-            self.update_bookings({'next_occasion': occasion + 1}, booking_id)
-        # SQL
-        else:
-            pass
+        booking = self.get_bookings(booking_id)
+        occasion = int(booking['next_occasion'].iloc[0])
+        self.update_bookings({'next_occasion': occasion + 1}, booking_id)
         return occasion
 
     def get_booking(self, booking_id):
-        # CSV
-        if not self.read_sql:
-            bookings = self.get_bookings()
-            details = bookings.loc[bookings.booking_id == booking_id].to_dict('records')[0]
-        # SQL
-        else:
-            pass
+        bookings = self.get_bookings()
+        details = bookings.loc[bookings.booking_id == booking_id].to_dict('records')[0]
         return details
 
 

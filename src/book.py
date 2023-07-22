@@ -2,7 +2,6 @@ import uuid
 import pandas as pd
 from datetime import datetime
 from dateutil import tz
-from pathlib import Path
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from src.models import Base, Booking, Occasion, Answer
@@ -10,29 +9,10 @@ from src.models import Base, Booking, Occasion, Answer
 
 class Database():
     def __init__(self):
-        # General
         self.bookingcolumns = ('booking_id', 'next_occasion', 'title', 'time_created', 'description', 'location')
         self.occasioncolumns = ('booking_id', 'occasion', 'date', 'time_start', 'time_end')
         self.answercolumns = ('booking_id', 'occasion', 'name', 'answer')
-        self.column_types = {
-            'booking_id': str,
-            'occasion_id': int,
-            'answer_id': int,
-            'next_occasion': int,
-            'occasion': int,
-            'title': str,
-            'time_created': str,
-            'description': str,
-            'location': str,
-            'date': str,
-            'time_start': str,
-            'time_end': str,
-            'name': str,
-            'answer': bool,
-            }
-        self.read_sql = True
 
-        # SQL
         self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
         Base.metadata.create_all(self.engine)
         self.model_from_columns = {
@@ -41,50 +21,12 @@ class Database():
             self.answercolumns: Answer,
             }
 
-        # CSV
-        self.bookingfile = Path("data/bookings.csv")
-        self.occasionfile = Path("data/occasions.csv")
-        self.answerfile = Path("data/answers.csv")
-        self.file_from_columns = {
-            self.bookingcolumns: self.bookingfile,
-            self.occasioncolumns: self.occasionfile,
-            self.answercolumns: self.answerfile,
-            }
-        self.columns_from_file = {v: k for k, v in self.file_from_columns.items()}
-
-    def cast_types(self, df: pd.DataFrame):
-        return df.astype({k: v for k, v in self.column_types.items() if k in df.columns})
-
-    def load(self, file: Path):
-        if file.is_file():
-            df = pd.read_csv(file).fillna('')
-        else:
-            df = pd.DataFrame({column: [] for column in self.columns_from_file(file)})
-        return df
-
-    def modify(self, source_df: pd.DataFrame, add=False):
-        # TODO What if multiple users modify at the same time?
-        target_file = self.file_from_columns[tuple(source_df.columns)]
-        if add:
-            target_df = self.load(target_file)
-            target_df = pd.concat([target_df, source_df])
-        else:
-            target_df = source_df
-        target_df = self.cast_types(target_df)
-        target_df.to_csv(target_file, index=False)
-
     def add(self, source_df: pd.DataFrame):
-        # CSV
-        self.modify(source_df, add=True)
-        # SQL
         Table = self.model_from_columns[tuple(source_df.columns)]
         rows = [Table(**dict(x[1])) for x in source_df.iterrows()]
         with Session(self.engine) as session:
             session.add_all(rows)
             session.commit()
-
-    def update(self, source_df: pd.DataFrame):
-        self.modify(source_df)
 
     def new(self, booking_id):
         time_created = datetime.utcnow().replace(microsecond=0).isoformat()
@@ -94,45 +36,31 @@ class Database():
         self.add(new_booking)
 
     def update_bookings(self, variables: dict, booking_id):
-        # CSV
-        bookings = self.get_bookings()
-        for column, value in variables.items():
-            bookings.loc[bookings.booking_id == booking_id, [column]] = value
-        self.update(bookings)
-        # SQL
         with Session(self.engine) as session:
             row = session.execute(select(Booking).filter_by(booking_id=booking_id)).scalar_one()
             for column, value in variables.items():
                 setattr(row, column, value)
             session.commit()
 
-    def get(self, file, booking_id=''):
-        # CSV
-        if not self.read_sql:
-            df = self.load(file)
+    def get(self, columns, booking_id=''):
+        Table = self.model_from_columns[columns]
+        with Session(self.engine) as session:
             if booking_id != '':
-                df = df.loc[df.booking_id == booking_id]
-        # SQL
-        else:
-            columns = self.columns_from_file[file]
-            Table = self.model_from_columns[columns]
-            with Session(self.engine) as session:
-                if booking_id != '':
-                    rows = [x[0] for x in session.execute(select(Table).filter_by(booking_id=booking_id)).all()]
-                else:
-                    rows = session.query(Table).all()
-            data = [[getattr(row, col) for row in rows] for col in columns]
-            df = pd.DataFrame(dict(zip(columns, data)))
-        return self.cast_types(df)
+                rows = [x[0] for x in session.execute(select(Table).filter_by(booking_id=booking_id)).all()]
+            else:
+                rows = session.query(Table).all()
+        data = [[getattr(row, col) for row in rows] for col in columns]
+        df = pd.DataFrame(dict(zip(columns, data)))
+        return df
 
     def get_bookings(self, booking_id=''):
-        return self.get(self.bookingfile, booking_id)
+        return self.get(self.bookingcolumns, booking_id)
 
     def get_occasions(self, booking_id=''):
-        return self.get(self.occasionfile, booking_id)
+        return self.get(self.occasioncolumns, booking_id)
 
     def get_answers(self, booking_id=''):
-        return self.get(self.answerfile, booking_id)
+        return self.get(self.answercolumns, booking_id)
 
     def get_occasion(self, booking_id):
         booking = self.get_bookings(booking_id)

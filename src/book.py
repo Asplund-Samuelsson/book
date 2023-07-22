@@ -130,7 +130,7 @@ class Database():
         # CSV
         if not self.read_sql:
             booking = self.get_bookings(booking_id)
-            occasion = booking['next_occasion'].iloc[0]
+            occasion = int(booking['next_occasion'].iloc[0])
             self.update_bookings({'next_occasion': occasion + 1}, booking_id)
         # SQL
         else:

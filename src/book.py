@@ -200,8 +200,12 @@ class BookingManager():
             "Lördag",
             "Söndag"
             ]
-        i = datetime.strptime(date, '%Y-%m-%d').weekday()
-        return weekdays[i]
+        if date != '':
+            i = datetime.strptime(date, '%Y-%m-%d').weekday()
+            weekday = weekdays[i]
+        else:
+            weekday = ''
+        return weekday
 
     def to_table(self, names=True):
         occasions = self.db.get_occasions(self.booking_id)

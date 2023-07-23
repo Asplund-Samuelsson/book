@@ -15,7 +15,7 @@
     <table>
         <tr>
           {% for column in booking['header'] %}
-          <th>{{ column }}</th>
+          <th>{{ column }} {% if column in booking['names'] %} <a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"> &#x270E; </a>{% endif %}</th>
           {% endfor %}
         </tr>
         {% for row in booking['rows'] %}

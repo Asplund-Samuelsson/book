@@ -2,16 +2,20 @@
 
 {% block content %}
   <form method="post">
-    <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
+    <h1>{% block title %} {{ booking['title'] }} {% endblock %}</h1>
     <table>
         <tr>
           {% for column in booking['header'] %}
           <th>{{ column }}</th>
           {% endfor %}
           <th>
+          {% if not edit %}
             <input type="text" name="name"
                    placeholder="Ditt namn"
                    value="{{ request.form['name'] }}"></input>
+          {% else %}
+            {{ booking['edit_name'] }}
+          {% endif %}
           </th>
         </tr>
         {% for row in booking['rows'] %}
@@ -19,7 +23,7 @@
           {% for column in row %}
           <td>{{ column }}</td>
           {% endfor %}
-          <td><input type="checkbox" name="answers" value="{{ loop.index0 }}"></input></td>
+          <td><input type="checkbox" name="answers" value="{{ loop.index0 }}" {% if booking['edit_answers'][loop.index0] %} checked {% endif %}></input></td>
         </tr>
         {% endfor %}
       </table>

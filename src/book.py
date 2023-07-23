@@ -35,12 +35,18 @@ class Database():
             )
         self.add(new_booking)
 
-    def update_bookings(self, variables: dict, booking_id):
+    def update(self, variables: dict, selection: dict, Table):
         with Session(self.engine) as session:
-            row = session.execute(select(Booking).filter_by(booking_id=booking_id)).scalar_one()
+            row = session.execute(select(Table).filter_by(**selection)).scalar_one()
             for column, value in variables.items():
                 setattr(row, column, value)
             session.commit()
+
+    def update_bookings(self, variables: dict, selection: dict):
+        self.update(variables, selection, Booking)
+
+    def update_answers(self, variables: dict, selection: dict):
+        self.update(variables, selection, Answer)
 
     def get(self, columns, booking_id=''):
         Table = self.model_from_columns[columns]
@@ -65,7 +71,7 @@ class Database():
     def get_occasion(self, booking_id):
         booking = self.get_bookings(booking_id)
         occasion = int(booking['next_occasion'].iloc[0])
-        self.update_bookings({'next_occasion': occasion + 1}, booking_id)
+        self.update_bookings({'next_occasion': occasion + 1}, {'booking_id': booking_id})
         return occasion
 
     def get_booking(self, booking_id):
@@ -94,7 +100,8 @@ class BookingManager():
 
     def update_bookings(self, title, description, location):
         update_items = {'title': title, 'description': description, 'location': location}
-        self.db.update_bookings(update_items, self.booking_id)
+        selection = {'booking_id': self.booking_id}
+        self.db.update_bookings(update_items, selection)
 
     def add_occasion(self, date, time_start, time_end):
         occasion = self.db.get_occasion(self.booking_id)
@@ -108,6 +115,11 @@ class BookingManager():
             {k: [v] for k, v in zip(self.db.answercolumns, [self.booking_id, occasion, name, answer])}
             )
         self.db.add(new_answer)
+
+    def update_answer(self, occasion, name, answer):
+        update_items = {'answer': answer}
+        selection = {'occasion': occasion, 'name': name, 'booking_id': self.booking_id}
+        self.db.update_answers(update_items, selection)
 
     def to_local_time(self, time):
         from_zone = tz.gettz('UTC')
@@ -133,15 +145,18 @@ class BookingManager():
             weekday = ''
         return weekday
 
-    def to_table(self, names=True):
+    def to_table(self, edit_name=''):
         occasions = self.db.get_occasions(self.booking_id)
         answers = self.db.get_answers(self.booking_id)
+        names = list(answers.name.unique())
         wanted_columns = ['date', 'time_start', 'time_end']
-        if names:
-            wanted_columns.extend(list(answers.name.unique()))
+        wanted_columns.extend(names)
         header = [self.columns_translation.get(x, x) for x in wanted_columns]
+        if edit_name in header:
+            header.remove(edit_name)
         header.insert(0, '')
         rows = []
+        edit_answers = []
         for occasion in occasions.iterrows():
             occasion = occasion[1].to_dict()
             row = [occasion[x] for x in wanted_columns[:3]]
@@ -153,13 +168,19 @@ class BookingManager():
                     answer = answer.iloc[0, 0]
                 else:
                     answer = False
-                row.extend([answer])
+                if name == edit_name:
+                    edit_answers.append(answer)
+                else:
+                    row.extend([answer])
             row = [self.replace_bool.get(x, x) for x in row]
             row = ['' if str(x) == 'nan' else x for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         table = {'header': header, 'rows': rows}
         table.update(self.db.get_booking(self.booking_id))
+        table['names'] = names
+        table['edit_name'] = edit_name
+        table['edit_answers'] = edit_answers
         return table
 
     def index_list(self, n=5):

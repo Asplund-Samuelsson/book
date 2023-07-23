@@ -43,23 +43,31 @@ def show(booking_id):
     return render_template('show.html', booking=b.to_table(), booking_id=booking_id)
 
 
-@app.route('/answer/<booking_id>', methods=['GET', 'POST'])
-def answer(booking_id):
+@app.route('/answer/<booking_id>', defaults={'edit_name': ''}, methods=['GET', 'POST'])
+@app.route('/answer/<booking_id>/<edit_name>', methods=['GET', 'POST'])
+def answer(booking_id, edit_name):
+    edit = edit_name != ''
     b.set_context(booking_id)
 
     if request.method == 'POST':
-        name = request.form['name']
+        if not edit:
+            name = request.form['name']
+        else:
+            name = edit_name
         occasions = b.occasions_list()
         true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
         answers = [x in true_answers for x in occasions]
 
         if not name:
             flash('Namn krävs.')
-        elif name in b.names_list():
+        elif name in b.names_list() and not edit:
             flash('Namnet är redan registrerat.')
         else:
             for occasion, answer in zip(occasions, answers):
-                b.add_answer(occasion, name, answer)
+                if not edit:
+                    b.add_answer(occasion, name, answer)
+                else:
+                    b.update_answer(occasion, name, answer)
             return redirect(url_for('show', booking_id=booking_id))
 
-    return render_template('answer.html', booking=b.to_table())
+    return render_template('answer.html', booking=b.to_table(edit_name), edit=edit)

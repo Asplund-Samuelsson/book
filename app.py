@@ -15,8 +15,11 @@ def index():
     return render_template('index.html', bookings=b.index_list())
 
 
-@app.route('/create/', methods=('GET', 'POST'))
-def create():
+@app.route('/create/', defaults={'booking_id': ''}, methods=('GET', 'POST'))
+@app.route('/create/<booking_id>', methods=('GET', 'POST'))
+def create(booking_id):
+    edit = booking_id != ''
+    b.set_context(booking_id)
     if request.method == 'POST':
         title = request.form['title']
         location = request.form.get('location', '')
@@ -28,13 +31,19 @@ def create():
         if not title:
             flash('Titel krävs.')
         else:
-            b.new_context()
+            if not edit:
+                b.new_context()
             b.update_bookings(title, description, location)
-            for occasion in zip(dates, start_times, end_times):
-                b.add_occasion(occasion[0], occasion[1], occasion[2])
+            if not edit:
+                for occasion in zip(dates, start_times, end_times):
+                    b.add_occasion(occasion[0], occasion[1], occasion[2])
             return redirect(url_for('show', booking_id=b.booking_id))
 
-    return render_template('create.html')
+    if not edit:
+        booking = {}
+    else:
+        booking = b.to_table()
+    return render_template('create.html', booking=booking, edit=edit)
 
 
 @app.route('/show/<booking_id>')

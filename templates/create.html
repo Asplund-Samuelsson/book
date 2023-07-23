@@ -1,20 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} Skapa ny bokning {% endblock %}</h1>
+    <h1>{% block title %} {% if not edit %} Skapa ny{% else %} Redigera{% endif %} bokning {% endblock %}</h1>
     <form method="post">
         <label for="title">Titel*</label>
         <br>
         <input type="text" name="title"
                placeholder="Vad ska bokas?"
-               value="{{ request.form['title'] }}"></input>
+               value="{{ request.form['title'] | default(booking['title']) }}"></input>
         <br>
 
         <label for="title">Plats</label>
         <br>
         <input type="text" name="location"
                placeholder="Plats för bokningen (frivillig)"
-               value="{{ request.form['location'] }}"></input>
+               value="{{ request.form['location'] | default(booking['location']) }}"></input>
         <br>
 
         <label for="description">Beskrivning</label>
@@ -23,10 +23,11 @@
                   placeholder="Beskrivning av bokningen"
                   rows="5"
                   cols="40"
-                  >{{ request.form['description'] }}</textarea>
+                  >{{ request.form['description'] | default(booking['description']) }}</textarea>
         <br>
         <p>*Obligatorisk</p>
         <br>
+        {% if not edit %}
         <div class="field">
             <input type="date" name="dates"></input>
             <input type="time" name="start_times"></input>
@@ -34,6 +35,15 @@
             <span onclick="addField(this)">+</span>
             <span onclick="removeField(this)">-</span>
         </div>
+        {% else %}
+        {% for row in booking['rows'] %}
+        <div class="field">
+            <input type="date" name="dates" value="{{ row[1] }}" disabled></input>
+            <input type="time" name="start_times" value="{{ row[2] }}" disabled></input>
+            <input type="time" name="end_times" value="{{ row[3] }}" disabled></input>
+        </div>
+        {% endfor %}
+        {% endif %}
         <button type="submit">Spara</button>
     </form>
 {% endblock %}

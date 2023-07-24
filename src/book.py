@@ -149,7 +149,14 @@ class BookingManager():
         occasions = self.db.get_occasions(self.booking_id)
         answers = self.db.get_answers(self.booking_id)
         names = list(answers.name.unique())
-        wanted_columns = ['date', 'time_start', 'time_end']
+        answers_sum = answers.groupby(by=['occasion']).sum()
+        best_occasions = pd.DataFrame({
+            'occasion': list(answers_sum.index),
+            'checked': list(answers_sum.answer)
+            })
+        best_occasions['rank'] = list(best_occasions.rank(method='min', ascending=False).checked.astype(int))
+        total_names = len(names)
+        wanted_columns = ['date', 'time_start', 'time_end', '#']
         wanted_columns.extend(names)
         header = [self.columns_translation.get(x, x) for x in wanted_columns]
         if edit_name in header:
@@ -157,11 +164,21 @@ class BookingManager():
         header.insert(0, '')
         rows = []
         edit_answers = []
+        ranks = []
         for occasion in occasions.iterrows():
             occasion = occasion[1].to_dict()
+            occasion_loc = (answers.occasion == occasion['occasion'])
             row = [occasion[x] for x in wanted_columns[:3]]
-            for name in wanted_columns[3:]:
-                occasion_loc = (answers.occasion == occasion['occasion'])
+            occasion_vote = best_occasions[best_occasions['occasion'] == occasion['occasion']]
+            if len(occasion_vote) > 0:
+                n_yes = occasion_vote['checked'].iloc[0]
+                rank = occasion_vote['rank'].iloc[0]
+                row.append(f'{str(n_yes)}/{str(total_names)}')
+            else:
+                row.append('')
+                rank = 0
+            ranks.append(rank)
+            for name in wanted_columns[4:]:
                 name_loc = (answers.name == name)
                 answer = answers.loc[occasion_loc & name_loc, ['answer']]
                 if len(answer):
@@ -181,6 +198,7 @@ class BookingManager():
         table['names'] = names
         table['edit_name'] = edit_name
         table['edit_answers'] = edit_answers
+        table['ranks'] = ranks
         return table
 
     def index_list(self, n=5):

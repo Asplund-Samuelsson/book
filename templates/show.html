@@ -19,7 +19,7 @@
           {% endfor %}
         </tr>
         {% for row in booking['rows'] %}
-        <tr>
+        <tr {% if booking['ranks'][loop.index0] == 1 %}style="background-color:#9ecae1"{% elif booking['ranks'][loop.index0] == 2 %}style="background-color:#c6dbef"{% elif booking['ranks'][loop.index0] == 3 %}style="background-color:#eff3ff"{% endif %}>
           {% for column in row %}
           <td>{{ column }}</td>
           {% endfor %}

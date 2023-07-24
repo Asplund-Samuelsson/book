@@ -2,6 +2,7 @@
 
 {% block content %}
 <h1>{% block title %} Bokningar {% endblock %}</h1>
+<br>
   {% for booking in bookings %}
   <a href="{{ url_for('show', booking_id=booking['booking_id']) }}">
     <div class='booking'>

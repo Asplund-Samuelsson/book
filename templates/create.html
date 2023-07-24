@@ -2,6 +2,7 @@
 
 {% block content %}
     <h1>{% block title %} {% if not edit %} Skapa ny{% else %} Redigera{% endif %} bokning {% endblock %}</h1>
+    <br>
     <form method="post">
         <label for="title">Titel*</label>
         <br>
@@ -44,6 +45,6 @@
         </div>
         {% endfor %}
         {% endif %}
-        <button type="submit">Spara</button>
+        <button type="submit" class="save">Spara</button>
     </form>
 {% endblock %}

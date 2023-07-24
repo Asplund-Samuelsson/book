@@ -6,9 +6,22 @@
     <table>
         <tr>
           {% for column in booking['header'] %}
-          <th>{{ column }}</th>
+          {% if column in booking['names'] %}
+          <th class="rotate"><div><span>{{ column }}</span></div></th>
+          {% else %}
+          <th></th>
+          {% endif %}
           {% endfor %}
-          <th>
+        </tr>
+        <tr>
+          {% for column in booking['header'] %}
+          {% if column in booking['names'] %}
+          <th><div><span></span></div></th>
+          {% else %}
+          <th><div><span>{{ column }}</span></div></th>
+          {% endif %}
+          {% endfor %}
+        <th>
           {% if not edit %}
             <input type="text" name="name"
                    placeholder="Ditt namn"
@@ -27,6 +40,6 @@
         </tr>
         {% endfor %}
       </table>
-    <button type="submit">Spara</button>
+    <button type="submit" class="save">Spara</button>
     </form>
 {% endblock %}

@@ -2,20 +2,30 @@
 
 {% block content %}
     <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
+    <br>
     <h3>Plats</h3>
     <p>{{ booking['location'] }}</p>
     <br>
     <h3>Beskrivning</h3>
     <p>{{ booking['description'] }}</p>
     <br>
-    <form action="{{ url_for('answer', booking_id=booking_id) }}">
-      <button type="submit">Lämna svar</button>
-    </form>
-    <br>
-    <table>
+    <table cellspacing="0">
         <tr>
           {% for column in booking['header'] %}
-          <th>{{ column }} {% if column in booking['names'] %} <a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"> &#x270E; </a>{% endif %}</th>
+          {% if column in booking['names'] %}
+          <th class="rotate"><div><span>{{ column }}</span></div></th>
+          {% else %}
+          <th></th>
+          {% endif %}
+          {% endfor %}
+        </tr>
+        <tr>
+          {% for column in booking['header'] %}
+          {% if column in booking['names'] %}
+          <th><div><span><a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"> &#x270E; </a></span></div></th>
+          {% else %}
+          <th><div><span>{{ column }}</span></div></th>
+          {% endif %}
           {% endfor %}
         </tr>
         {% for row in booking['rows'] %}
@@ -25,5 +35,12 @@
           {% endfor %}
         </tr>
         {% endfor %}
-      </table> 
+      </table>
+    <div class="clear"></div>
+    <form action="{{ url_for('answer', booking_id=booking_id) }}">
+      <button type="submit" class="answer">Lämna svar</button>
+    </form>
+    <form action="{{ url_for('create', booking_id=booking_id) }}">
+      <button type="submit" class="edit">Redigera</button>
+    </form>
 {% endblock %}

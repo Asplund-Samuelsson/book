@@ -15,7 +15,9 @@ body{
 
 h1{
 	text-align: center;
-	color:  #888;
+	background: #fe7405;
+	padding: 10px;
+	color:  #fff;
 }
 
 form{
@@ -76,18 +78,88 @@ button{
 	width:  150px;
 	float: left;
 	font-size: 16px;
-	background-color: #5b8ebf;
 	border: thin solid #d5e4d4;
 	cursor: pointer;
 	color: #fff;
 }
+.answer {
+	background-color: #5aae61;
+}
+.edit {
+	background-color: #878787;
+}
+.save {
+	background-color: #5aae61;
+}
 
 button:active{
-	background-color: #aedea6;
+	background-color: #e0e0e0;
 	color: #000;
 }
 
 .reset{
 	float: right;
 	background-color: green;
+}
+
+.booking {
+	padding: 10px;
+	margin: 5px;
+	background-color: #f3f3f3
+}
+
+nav a {
+	color: #444433;
+	font-size: 2.5em;
+	font-weight: bold;
+	margin-left: 50px;
+	text-decoration: none;
+}
+
+.alert {
+	padding: 20px;
+	margin: 5px;
+	color: #970020;
+	background-color: #ffd5de;
+}
+
+table {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+th, td {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.clear {
+    clear: both;
+}
+
+th.adjust {
+	height: 140px;
+	white-space: nowrap;
+}
+th.adjust > div {
+transform:
+	translate(0px, 51px)
+}
+th.rotate {
+	/* Something you can count on */
+	height: 100px;
+	white-space: nowrap;
+}
+th.rotate > div {
+transform: 
+	/* Magic Numbers */
+	translate(10px, 41px)
+	/* 45 is really 360 - 45 */
+	rotate(300deg);
+width: 30px;
+}
+th.rotate > div > span {
+border-bottom: 1px solid #ccc;
+padding: 5px 10px;
 }

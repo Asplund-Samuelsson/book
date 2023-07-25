@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>{% block title %} {% endblock %} - PanBook</title>
+    <title>{% block title %} {% endblock %}</title>
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('index') }}">Senaste</a>
-        <a href="{{ url_for('create') }}">Ny</a>
-    </nav>
+    <ul>
+        <li><a href="{{ url_for('index') }}">SENASTE</a></li>
+        <li><a href="{{ url_for('create') }}">NY</a></li>
+    </ul>
     <div class="content">
         {% for message in get_flashed_messages() %}
             <div class="alert">{{ message }}</div>

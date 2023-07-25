@@ -146,7 +146,7 @@ class BookingManager():
         return weekday
 
     def to_table(self, edit_name=''):
-        occasions = self.db.get_occasions(self.booking_id)
+        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date','time_start'])
         answers = self.db.get_answers(self.booking_id)
         names = list(answers.name.unique())
         answers_sum = answers.groupby(by=['occasion']).sum()
@@ -154,7 +154,7 @@ class BookingManager():
             'occasion': list(answers_sum.index),
             'checked': list(answers_sum.answer)
             })
-        best_occasions['rank'] = list(best_occasions.rank(method='min', ascending=False).checked.astype(int))
+        best_occasions['rank'] = list(best_occasions.rank(method='dense', ascending=False).checked.astype(int))
         total_names = len(names)
         wanted_columns = ['date', 'time_start', 'time_end', '#']
         wanted_columns.extend(names)
@@ -190,15 +190,17 @@ class BookingManager():
                 else:
                     row.extend([answer])
             row = [self.replace_bool.get(x, x) for x in row]
-            row = ['' if str(x) == 'nan' else x for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
-        table = {'header': header, 'rows': rows}
+        table = {
+            'header': header,
+            'rows': rows,
+            'names': names,
+            'edit_name': edit_name,
+            'edit_answers': edit_answers,
+            'ranks': ranks,
+            }
         table.update(self.db.get_booking(self.booking_id))
-        table['names'] = names
-        table['edit_name'] = edit_name
-        table['edit_answers'] = edit_answers
-        table['ranks'] = ranks
         return table
 
     def index_list(self, n=5):
@@ -215,7 +217,7 @@ class BookingManager():
         return bookings_list
 
     def occasions_list(self):
-        return list(self.db.get_occasions(self.booking_id).occasion)
+        return list(self.db.get_occasions(self.booking_id).sort_values(by=['date','time_start']).occasion)
 
     def names_list(self):
         return list(self.db.get_answers(self.booking_id).name)

@@ -22,7 +22,7 @@
         <tr>
           {% for column in booking['header'] %}
           {% if column in booking['names'] %}
-          <th><div><span><a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"> &#x270E; </a></span></div></th>
+          <th class="pen"><a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"><div><span></span> &#x270E; </span></div></a></th>
           {% else %}
           <th><div><span>{{ column }}</span></div></th>
           {% endif %}

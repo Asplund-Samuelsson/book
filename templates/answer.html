@@ -7,16 +7,6 @@
         <tr>
           {% for column in booking['header'] %}
           {% if column in booking['names'] %}
-          <th class="rotate"><div><span>{{ column }}</span></div></th>
-          {% else %}
-          <th></th>
-          {% endif %}
-          {% endfor %}
-        </tr>
-        <tr>
-          {% for column in booking['header'] %}
-          {% if column in booking['names'] %}
-          <th><div><span></span></div></th>
           {% else %}
           <th><div><span>{{ column }}</span></div></th>
           {% endif %}
@@ -34,7 +24,7 @@
         {% for row in booking['rows'] %}
         <tr>
           {% for column in row %}
-          <td>{{ column }}</td>
+          {% if booking['header'][loop.index0] not in booking['names'] %}<td>{{ column }}</td>{% endif %}
           {% endfor %}
           <td><input type="checkbox" name="answers" value="{{ loop.index0 }}" {% if booking['edit_answers'][loop.index0] %} checked {% endif %}></input></td>
         </tr>

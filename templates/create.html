@@ -4,10 +4,10 @@
     <h1>{% block title %} {% if not edit %} Skapa ny{% else %} Redigera{% endif %} bokning {% endblock %}</h1>
     <br>
     <form method="post">
-        <label for="title">Titel*</label>
+        <label for="title">Titel</label>
         <br>
         <input type="text" name="title"
-               placeholder="Vad ska bokas?"
+               placeholder="Vad ska bokas? (KRÄVS)"
                value="{{ request.form['title'] | default(booking['title']) }}"></input>
         <br>
 
@@ -21,12 +21,11 @@
         <label for="description">Beskrivning</label>
         <br>
         <textarea name="description"
-                  placeholder="Beskrivning av bokningen"
+                  placeholder="Beskrivning av bokningen (frivillig)"
                   rows="5"
                   cols="40"
                   >{{ request.form['description'] | default(booking['description']) }}</textarea>
         <br>
-        <p>*Obligatorisk</p>
         <br>
         {% if not edit %}
         <div class="field">

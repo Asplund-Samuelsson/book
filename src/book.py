@@ -227,7 +227,7 @@ class BookingManager():
             }
         return table
 
-    def index_list(self, n=5):
+    def index_list(self, n=10):
         bookings_raw = self.db.get_bookings().sort_values(by='time_created', ascending=False).head(n).iterrows()
         bookings_list = []
         for booking in bookings_raw:

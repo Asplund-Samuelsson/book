@@ -7,7 +7,7 @@
   <a style="text-decoration: none; color: black;" href="{{ url_for('show', booking_id=booking['booking_id']) }}">
     <div class='booking'>
       <h3>{{ booking['title'] }}</h3>
-      <p><i>{{ booking['time_created'] }}</i></p>
+      <p class="timestamp"><i>{{ booking['time_created'] }}</i></p>
       <p>{{ booking['description'] }}</p>
     </div>
   </a>

@@ -3,6 +3,8 @@
 {% block content %}
     <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
     <br>
+    <p class="timestamp"><i>Skapad {{ booking['time_created']|replace('T', ' ') }}</i></p>
+    <br>
     <h3>Plats</h3>
     <p>{{ booking['location'] }}</p>
     <br>

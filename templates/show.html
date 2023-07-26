@@ -3,7 +3,7 @@
 {% block content %}
     <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
     <br>
-    <p class="timestamp">Skapad {{ booking['time_created'] }}</p>
+    <p class="timestamp">Skapad {{ booking['time_created'] }} - <a href="{{ url_for('create', booking_id=booking_id) }}">&#x270E; Redigera</a></p>
     <br>
     <h3>Plats</h3>
     <p>{{ booking['location'] }}</p>
@@ -11,11 +11,11 @@
     <h3>Beskrivning</h3>
     <p>{{ booking['description'] }}</p>
     <br>
-    <table cellspacing="0">
+    <table cellspacing="0" class="show">
         <tr>
           {% for column in booking['header'] %}
           {% if column in booking['names'] %}
-          <th class="rotate"><div><span>{{ column }}</span></div></th>
+          <th class="rotate"><div><span>{% if column|length <= 12 %}{{ column }}{% else %}{{ column[:12] }}...{% endif %}</span></div></th>
           {% else %}
           <th></th>
           {% endif %}
@@ -45,10 +45,8 @@
     <form action="{{ url_for('comment', booking_id=booking_id) }}">
       <button type="submit" class="comment">Kommentera</button>
     </form>
-    <form action="{{ url_for('create', booking_id=booking_id) }}">
-      <button type="submit" class="edit">Redigera</button>
-    </form>
     <div class="clear"></div>
+    <br>
     <br>
     <h3>Kommentarer</h3>
     {% if booking['comments']|length == 0 %}

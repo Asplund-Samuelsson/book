@@ -3,6 +3,16 @@
 {% block content %}
   <form method="post">
     <h1>{% block title %} {{ booking['title'] }} {% endblock %}</h1>
+    <br>
+    <label for="name">Namn</label>
+    <br>
+    {% if not edit %}
+    <input type="text" name="name"
+           placeholder="Ditt namn"
+           value="{{ request.form['name'] }}"></input>
+    {% else %}
+    {{ booking['edit_name'] }}
+    {% endif %}
     <table>
         <tr>
           {% for column in booking['header'] %}
@@ -11,15 +21,7 @@
           <th><div><span>{{ column }}</span></div></th>
           {% endif %}
           {% endfor %}
-        <th>
-          {% if not edit %}
-            <input type="text" name="name"
-                   placeholder="Ditt namn"
-                   value="{{ request.form['name'] }}"></input>
-          {% else %}
-            {{ booking['edit_name'] }}
-          {% endif %}
-          </th>
+        <th>&#x2193;</th>
         </tr>
         {% for row in booking['rows'] %}
         <tr>

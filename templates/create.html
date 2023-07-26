@@ -10,14 +10,14 @@
                placeholder="Vad ska bokas? (KRÄVS)"
                value="{{ request.form['title'] | default(booking['title']) }}"></input>
         <br>
-
+        <br>
         <label for="title">Plats</label>
         <br>
         <input type="text" name="location"
                placeholder="Plats för bokningen (frivillig)"
                value="{{ request.form['location'] | default(booking['location']) }}"></input>
         <br>
-
+        <br>
         <label for="description">Beskrivning</label>
         <br>
         <textarea name="description"

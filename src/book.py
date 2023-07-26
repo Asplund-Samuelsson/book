@@ -158,7 +158,7 @@ class BookingManager():
         return weekday
 
     def to_table(self, edit_name=''):
-        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date','time_start'])
+        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start'])
         answers = self.db.get_answers(self.booking_id)
         names = list(answers.name.unique())
         comments = self.db.get_comments(self.booking_id).sort_values(by=['time_created'])
@@ -241,7 +241,7 @@ class BookingManager():
         return bookings_list
 
     def occasions_list(self):
-        return list(self.db.get_occasions(self.booking_id).sort_values(by=['date','time_start']).occasion)
+        return list(self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start']).occasion)
 
     def names_list(self):
         return list(self.db.get_answers(self.booking_id).name)

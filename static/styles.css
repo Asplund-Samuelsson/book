@@ -8,25 +8,38 @@ body{
 	font-family: sans-serif;
 	min-height: 100%;
 	color: #333;
-	width:  600px;
+	width: 90%;
+	max-width:  900px;
 	margin: 0 auto;
 	padding-top: 20px;
+	font-size: 16px;
 }
 
 h1{
-	text-align: center;
+	text-align: left;
 	background: #fe7405;
 	padding: 10px;
 	color:  #fff;
+	font-size: calc(20px + 1vw);
 }
 
 .timestamp {
 	color: #999;
 	font-style: italic;
 }
+.timestamp a {
+	color: #999;
+	text-decoration: underline;
+}
 
 form{
 	width:  100%;
+}
+
+input[type=text] {
+	padding: 3px 3px;
+	margin: 3px 0;
+	box-sizing: border-box;
 }
 
 .field{
@@ -39,10 +52,10 @@ form{
 	padding: 5px 10px;
 	width: 100%;
 	border: none;
-	 border: thin solid #d4d4d4; 
-	font-size: 20px;
+	border: thin solid #d4d4d4;
+	font-size: 16px;
 	color: #888;
-	font-family: ubuntu, sans-serif;
+	font-family: monospace;
 	background-color: #f9f9f9;
 }
 .field input:focus{
@@ -135,6 +148,12 @@ th, td {
 	padding-right: 5px;
 }
 
+table.show {
+    display: block;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
 th.pen a {
 	display:block;
 	text-decoration:none;
@@ -155,7 +174,7 @@ transform:
 }
 th.rotate {
 	/* Something you can count on */
-	height: 100px;
+	height: 140px;
 	white-space: nowrap;
 }
 th.rotate > div {
@@ -183,7 +202,7 @@ li a {
 	display: block;
 	padding: 8px;
 	background-color: #ffffff;
-	font-size: 1.2em;
+	font-size: calc(12px + 1vw);
 	text-decoration: none;
 	color: #fe7405;
 	font-weight: bold;

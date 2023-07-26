@@ -58,6 +58,15 @@ def answer(booking_id, edit_name):
     edit = edit_name != ''
     b.set_context(booking_id)
 
+    booking = b.to_table(edit_name)
+    i = booking['header'].index('#')
+    booking['header'].pop(i)
+    rows = []
+    for row in booking['rows']:
+        row.pop(i)
+        rows.append(row)
+    booking['rows'] = rows
+
     if request.method == 'POST':
         if not edit:
             name = request.form['name']
@@ -79,7 +88,7 @@ def answer(booking_id, edit_name):
                     b.update_answer(occasion, name, answer)
             return redirect(url_for('show', booking_id=booking_id))
 
-    return render_template('answer.html', booking=b.to_table(edit_name), edit=edit)
+    return render_template('answer.html', booking=booking, edit=edit)
 
 
 @app.route('/comment/<booking_id>', methods=['GET', 'POST'])

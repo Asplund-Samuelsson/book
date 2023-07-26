@@ -80,3 +80,20 @@ def answer(booking_id, edit_name):
             return redirect(url_for('show', booking_id=booking_id))
 
     return render_template('answer.html', booking=b.to_table(edit_name), edit=edit)
+
+
+@app.route('/comment/<booking_id>', methods=['GET', 'POST'])
+def comment(booking_id):
+    b.set_context(booking_id)
+
+    if request.method == 'POST':
+        name = request.form['name']
+        comment = request.form['comment']
+
+        if not comment:
+            flash('Kommentarsfältet kan inte vara tomt.')
+        else:
+            b.add_comment(name, comment)
+            return redirect(url_for('show', booking_id=booking_id))
+
+    return render_template('comment.html', booking=b.to_table())

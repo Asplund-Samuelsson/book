@@ -4,7 +4,7 @@ from datetime import datetime
 from dateutil import tz
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
-from src.models import Base, Booking, Occasion, Answer
+from src.models import Base, Booking, Occasion, Answer, Comment
 
 
 class Database():
@@ -12,6 +12,7 @@ class Database():
         self.bookingcolumns = ('booking_id', 'next_occasion', 'title', 'time_created', 'description', 'location')
         self.occasioncolumns = ('booking_id', 'occasion', 'date', 'time_start', 'time_end')
         self.answercolumns = ('booking_id', 'occasion', 'name', 'answer')
+        self.commentcolumns = ('booking_id', 'time_created', 'name', 'comment')
 
         self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
         Base.metadata.create_all(self.engine)
@@ -19,6 +20,7 @@ class Database():
             self.bookingcolumns: Booking,
             self.occasioncolumns: Occasion,
             self.answercolumns: Answer,
+            self.commentcolumns: Comment,
             }
 
     def add(self, source_df: pd.DataFrame):
@@ -67,6 +69,9 @@ class Database():
 
     def get_answers(self, booking_id=''):
         return self.get(self.answercolumns, booking_id)
+
+    def get_comments(self, booking_id=''):
+        return self.get(self.commentcolumns, booking_id)
 
     def get_occasion(self, booking_id):
         booking = self.get_bookings(booking_id)
@@ -121,6 +126,13 @@ class BookingManager():
         selection = {'occasion': occasion, 'name': name, 'booking_id': self.booking_id}
         self.db.update_answers(update_items, selection)
 
+    def add_comment(self, name, comment):
+        time_created = datetime.utcnow().replace(microsecond=0).isoformat()
+        new_comment = pd.DataFrame(
+            {k: [v] for k, v in zip(self.db.commentcolumns, [self.booking_id, time_created, name, comment])}
+            )
+        self.db.add(new_comment)
+
     def to_local_time(self, time):
         from_zone = tz.gettz('UTC')
         to_zone = tz.gettz('Europe/Stockholm')
@@ -149,6 +161,12 @@ class BookingManager():
         occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date','time_start'])
         answers = self.db.get_answers(self.booking_id)
         names = list(answers.name.unique())
+        comments = self.db.get_comments(self.booking_id).sort_values(by=['time_created'])
+        comments = list(zip(
+            list(comments['name']),
+            [self.to_local_time(x) for x in list(comments['time_created'])],
+            list(comments['comment']),
+            ))
         answers_sum = answers.groupby(by=['occasion']).sum()
         best_occasions = pd.DataFrame({
             'occasion': list(answers_sum.index),
@@ -192,15 +210,21 @@ class BookingManager():
             row = [self.replace_bool.get(x, x) for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
+        booking = self.db.get_booking(self.booking_id)
         table = {
+            'booking_id': booking['booking_id'],
+            'title': booking['title'],
+            'time_created': self.to_local_time(booking['time_created']),
+            'location': booking['location'],
+            'description': booking['description'],
             'header': header,
             'rows': rows,
             'names': names,
             'edit_name': edit_name,
             'edit_answers': edit_answers,
             'ranks': ranks,
+            'comments': comments,
             }
-        table.update(self.db.get_booking(self.booking_id))
         return table
 
     def index_list(self, n=5):

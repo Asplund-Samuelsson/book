@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} {{ booking['title'] }} {% endblock %}</h1>
+    <br>
+    <form method="post">
+        <label for="title">Namn</label>
+        <br>
+        <input type="text" name="name"
+               placeholder="Ditt namn"
+               value="{{ request.form['name'] }}"></input>
+        <br>
+        <label for="comment">Kommentar</label>
+        <br>
+        <textarea name="comment"
+                  placeholder="Din kommentar"
+                  rows="5"
+                  cols="40"
+                  >{{ request.form['comment'] }}</textarea>
+        <br>
+        <button type="submit" class="save">Spara</button>
+    </form>
+    <form action="{{ url_for('show', booking_id=booking['booking_id']) }}">
+        <button type="submit" class="edit">Avbryt</button>
+    </form>
+  {% endblock %}

@@ -32,4 +32,7 @@
       </table>
     <button type="submit" class="save">Spara</button>
     </form>
+    <form action="{{ url_for('show', booking_id=booking['booking_id']) }}">
+      <button type="submit" class="edit">Avbryt</button>
+    </form>
 {% endblock %}

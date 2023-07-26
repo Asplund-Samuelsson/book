@@ -36,3 +36,12 @@ class Answer(Base):
     name: Mapped[str] = mapped_column()
     occasion: Mapped[int] = mapped_column(ForeignKey("occasions.occasion"))
     answer: Mapped[bool] = mapped_column()
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+    comment_id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[str] = mapped_column(ForeignKey("bookings.booking_id"))
+    time_created: Mapped[str] = mapped_column()
+    name: Mapped[str] = mapped_column()
+    comment: Mapped[str] = mapped_column()

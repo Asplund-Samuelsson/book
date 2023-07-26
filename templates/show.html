@@ -3,7 +3,7 @@
 {% block content %}
     <h1>{% block title %} {{ booking['title']}} {% endblock %}</h1>
     <br>
-    <p class="timestamp"><i>Skapad {{ booking['time_created']|replace('T', ' ') }}</i></p>
+    <p class="timestamp">Skapad {{ booking['time_created'] }}</p>
     <br>
     <h3>Plats</h3>
     <p>{{ booking['location'] }}</p>
@@ -24,7 +24,7 @@
         <tr>
           {% for column in booking['header'] %}
           {% if column in booking['names'] %}
-          <th class="pen"><a href="{{ url_for('answer', booking_id=booking['booking_id'], edit_name=column) }}"><div><span></span> &#x270E; </span></div></a></th>
+          <th class="pen"><a href="{{ url_for('answer', booking_id=booking_id, edit_name=column) }}"><div><span></span> &#x270E; </span></div></a></th>
           {% else %}
           <th><div><span>{{ column }}</span></div></th>
           {% endif %}
@@ -42,7 +42,23 @@
     <form action="{{ url_for('answer', booking_id=booking_id) }}">
       <button type="submit" class="answer">Lämna svar</button>
     </form>
+    <form action="{{ url_for('comment', booking_id=booking_id) }}">
+      <button type="submit" class="comment">Kommentera</button>
+    </form>
     <form action="{{ url_for('create', booking_id=booking_id) }}">
       <button type="submit" class="edit">Redigera</button>
     </form>
+    <div class="clear"></div>
+    <br>
+    <h3>Kommentarer</h3>
+    {% if booking['comments']|length == 0 %}
+    <p>Inga kommentarer.</p>
+    {% endif %}
+    {% for comment in booking['comments'] %}
+    <br>
+    <p><b>{{ comment[0] }}</b></p>
+    <p class="timestamp">{{ comment[1] }}</p>
+    <p>{{ comment[2] }}</p>
+    <br>
+    {% endfor %}
 {% endblock %}

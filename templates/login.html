@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Logga in {% endblock %}</h1>
+<br>
+<form method="post">
+    <label for="password">Lösenord</label>
+    <br>
+    <input type="password" name="password"
+           value="{{ request.form['password'] }}"></input>
+    <br>
+    <button type="submit" class="save">Verifiera</button>
+</form>
+{% endblock %}

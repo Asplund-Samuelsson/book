@@ -31,9 +31,17 @@
           <td><input type="checkbox" name="answers" value="{{ loop.index0 }}" {% if booking['edit_answers'][loop.index0] %} checked {% endif %}></input></td>
         </tr>
         {% endfor %}
-      </table>
+    </table>
+    <label for="comment">Kommentar</label>
+    <br>
+    <textarea name="comment"
+              placeholder="Din kommentar"
+              rows="5"
+              cols="40"
+              >{{ request.form['comment'] }}</textarea>
+    <br>
     <button type="submit" class="save">Spara</button>
-    </form>
+  </form>
     <form action="{{ url_for('show', booking_id=booking['booking_id']) }}">
       <button type="submit" class="edit">Avbryt</button>
     </form>

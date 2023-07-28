@@ -118,6 +118,7 @@ def answer(booking_id, edit_name):
     booking['rows'] = rows
 
     if request.method == 'POST':
+        comment = request.form['comment']
         if not edit:
             name = request.form['name']
         else:
@@ -136,6 +137,8 @@ def answer(booking_id, edit_name):
                     b.add_answer(occasion, name, answer)
                 else:
                     b.update_answer(occasion, name, answer)
+            if comment != '':
+                b.add_comment(name, comment)
             return redirect(url_for('show', booking_id=booking_id))
 
     return render_template('answer.html', booking=booking, edit=edit)
@@ -150,7 +153,9 @@ def comment(booking_id):
         name = request.form['name']
         comment = request.form['comment']
 
-        if not comment:
+        if not name:
+            flash('Namn krävs.')
+        elif not comment:
             flash('Kommentarsfältet kan inte vara tomt.')
         else:
             b.add_comment(name, comment)

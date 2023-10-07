@@ -212,4 +212,5 @@ li a {
 	cursor: default;
 	text-align:center;
 	user-select: none;
+	outline: none;
 }

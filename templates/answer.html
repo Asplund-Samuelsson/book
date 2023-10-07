@@ -35,6 +35,7 @@
               size="1"
               readonly="true"
               name="tristate_answers"
+              onfocus="this.blur()"
               onclick="tristate(this, '{{ booking['tristates'][0] }}', '{{ booking['tristates'][1] }}', '{{ booking['tristates'][2] }}')"
               value="{{ booking['tristate_answers'][loop.index0] | default(booking['tristates'][0], true) }}" />
           </td>

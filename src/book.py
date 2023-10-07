@@ -158,48 +158,54 @@ class BookingManager():
         return weekday
 
     def to_table(self, edit_name=''):
-        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start'])
-        answers = self.db.get_answers(self.booking_id)
-        names = list(answers.name.unique())
         comments = self.db.get_comments(self.booking_id).sort_values(by=['time_created'])
         comments = list(zip(
             list(comments['name']),
             [self.to_local_time(x) for x in list(comments['time_created'])],
             list(comments['comment']),
             ))
-        answers_copy = answers.copy()
-        answers_copy.answer = answers_copy.answer.apply(lambda x: int(x == 1))
-        answers_sum = answers_copy.groupby(by=['occasion']).sum()
-        best_occasions = pd.DataFrame({
-            'occasion': list(answers_sum.index),
-            'checked': list(answers_sum.answer)
-            })
-        best_occasions['rank'] = list(best_occasions.rank(method='dense', ascending=False).checked.astype(int))
-        total_names = len(names)
-        wanted_columns = ['date', 'time_start', 'time_end', '#']
-        wanted_columns.extend(names)
+
+        answers = self.db.get_answers(self.booking_id)
+
+        names = list(answers['name'].unique())
+        wanted_columns = ['date', 'time_start', 'time_end', '#'] + names
         header = [self.columns_translation.get(x, x) for x in wanted_columns]
         if edit_name in header:
             header.remove(edit_name)
         header.insert(0, '')
+
         rows = []
         edit_answers = []
         ranks = []
+
+        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start'])
+
+        answers_copy = answers.copy()
+        answers_copy['answer'] = answers_copy['answer'].apply(lambda x: int(x == 1))
+        answers_sum = answers_copy.groupby(by=['occasion']).sum()
+        best_occasions = pd.DataFrame({
+            'occasion': list(answers_sum.index),
+            'checked': list(answers_sum['answer'])
+            })
+        best_occasions['rank'] = list(best_occasions.rank(method='dense', ascending=False)['checked'].astype(int))
+
         for occasion in occasions.iterrows():
             occasion = occasion[1].to_dict()
-            occasion_loc = (answers.occasion == occasion['occasion'])
             row = [occasion[x] for x in wanted_columns[:3]]
             occasion_vote = best_occasions[best_occasions['occasion'] == occasion['occasion']]
             if len(occasion_vote) > 0:
                 n_yes = occasion_vote['checked'].iloc[0]
                 rank = occasion_vote['rank'].iloc[0]
-                row.append(f'{str(n_yes)}/{str(total_names)}')
+                row.append(f'{str(n_yes)}/{str(len(names))}')
             else:
                 row.append('')
                 rank = 0
             ranks.append(rank)
+
+            occasion_loc = (answers['occasion'] == occasion['occasion'])
+
             for name in wanted_columns[4:]:
-                name_loc = (answers.name == name)
+                name_loc = (answers['name'] == name)
                 answer = answers.loc[occasion_loc & name_loc, ['answer']]
                 if len(answer):
                     answer = answer.iloc[0, 0]
@@ -209,10 +215,14 @@ class BookingManager():
                     edit_answers.append(answer)
                 else:
                     row.extend([answer])
+
             row = [self.replace_int.get(x, x) for x in row]
             row.insert(0, self.weekday(row[0]))
+
             rows.append(row)
+
         booking = self.db.get_booking(self.booking_id)
+
         table = {
             'booking_id': booking['booking_id'],
             'title': booking['title'],
@@ -227,6 +237,7 @@ class BookingManager():
             'ranks': ranks,
             'comments': comments,
             }
+
         return table
 
     def index_list(self, n=10):

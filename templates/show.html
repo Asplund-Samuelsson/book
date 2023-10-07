@@ -15,7 +15,7 @@
         <tr>
           {% for column in booking['header'] %}
           {% if column in booking['names'] %}
-          <th class="rotate"><div><span>{% if column|length <= 12 %}{{ column }}{% else %}{{ column[:12] }}...{% endif %}</span></div></th>
+          <th class="rotate"><div><span>{% if column|length <= 12 %}{{ column }}{% else %}{{ column[:9] }}...{% endif %}</span></div></th>
           {% else %}
           <th></th>
           {% endif %}

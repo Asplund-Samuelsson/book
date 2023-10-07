@@ -93,7 +93,7 @@ class BookingManager():
             'time_start': 'Från',
             'time_end': 'Till',
             }
-        self.replace_bool = {False: '', True: '\u2713'}
+        self.replace_int = {0: '', 1: '\u2713', 2: '?'}
         self.db = Database()
 
     def new_context(self):
@@ -167,7 +167,9 @@ class BookingManager():
             [self.to_local_time(x) for x in list(comments['time_created'])],
             list(comments['comment']),
             ))
-        answers_sum = answers.groupby(by=['occasion']).sum()
+        answers_copy = answers.copy()
+        answers_copy.answer = answers_copy.answer.apply(lambda x: int(x == 1))
+        answers_sum = answers_copy.groupby(by=['occasion']).sum()
         best_occasions = pd.DataFrame({
             'occasion': list(answers_sum.index),
             'checked': list(answers_sum.answer)
@@ -202,12 +204,12 @@ class BookingManager():
                 if len(answer):
                     answer = answer.iloc[0, 0]
                 else:
-                    answer = False
+                    answer = 0
                 if name == edit_name:
                     edit_answers.append(answer)
                 else:
                     row.extend([answer])
-            row = [self.replace_bool.get(x, x) for x in row]
+            row = [self.replace_int.get(x, x) for x in row]
             row.insert(0, self.weekday(row[0]))
             rows.append(row)
         booking = self.db.get_booking(self.booking_id)

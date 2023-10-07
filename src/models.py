@@ -35,7 +35,7 @@ class Answer(Base):
     booking_id: Mapped[str] = mapped_column(ForeignKey("bookings.booking_id"))
     name: Mapped[str] = mapped_column()
     occasion: Mapped[int] = mapped_column(ForeignKey("occasions.occasion"))
-    answer: Mapped[bool] = mapped_column()
+    answer: Mapped[int] = mapped_column()
 
 
 class Comment(Base):

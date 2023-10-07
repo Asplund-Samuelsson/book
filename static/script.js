@@ -57,3 +57,21 @@ function addField(plusElement){
 function removeField(minusElement){
     minusElement.parentElement.remove();
 }
+
+// loops thru the given 3 values for the given control
+function tristate(control, value0, value1, value2) {
+    switch (control.value.charAt(0)) {
+        case value0:
+            control.value = value1;
+            break;
+        case value1:
+            control.value = value2;
+            break;
+        case value2:
+            control.value = value0;
+            break;
+        default:
+            // display the current value if it's unexpected
+            alert(control.value);
+    }
+}

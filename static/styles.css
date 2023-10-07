@@ -207,3 +207,8 @@ li a {
 	color: #fe7405;
 	font-weight: bold;
 }
+
+.tristate {
+	cursor: default;
+	text-align:center;
+}

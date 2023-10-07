@@ -11,7 +11,7 @@
            placeholder="Ditt namn"
            value="{{ request.form['name'] }}"></input>
     {% else %}
-    {{ booking['edit_name'] }}
+    <b>{{ booking['edit_name'] }}</b>
     {% endif %}
     <table>
         <tr>
@@ -28,7 +28,16 @@
           {% for column in row %}
           {% if booking['header'][loop.index0] not in booking['names'] %}<td>{{ column }}</td>{% endif %}
           {% endfor %}
-          <td><input type="checkbox" name="answers" value="{{ loop.index0 }}" {% if booking['edit_answers'][loop.index0] %} checked {% endif %}></input></td>
+          <td>
+            <input
+              class="tristate"
+              type="text"
+              size="1"
+              readonly="true"
+              name="tristate_answers"
+              onclick="tristate(this, '{{ booking['tristates'][0] }}', '{{ booking['tristates'][1] }}', '{{ booking['tristates'][2] }}')"
+              value="{{ booking['tristate_answers'][loop.index0] | default(booking['tristates'][0], true) }}" />
+          </td>
         </tr>
         {% endfor %}
     </table>

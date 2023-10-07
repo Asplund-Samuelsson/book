@@ -9,8 +9,8 @@
 <body>
     <ul>
         <li>{% if current_user.is_authenticated %}<a href="{{ url_for('logout') }}">&#10006;{% else %}<a>&#x1F464;{% endif %}</a></li>
-        <li><a href="{{ url_for('index') }}">&#x21AA;HEM</a></li>
-        <li><a href="{{ url_for('create') }}">&#x21AA;NY</a></li>
+        <li><a href="{{ url_for('index') }}">HEM</a></li>
+        <li><a href="{{ url_for('create') }}">NY</a></li>
     </ul>
     <div class="content">
         {% for message in get_flashed_messages() %}

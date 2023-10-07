@@ -116,6 +116,8 @@ def answer(booking_id, edit_name):
         row.pop(i)
         rows.append(row)
     booking['rows'] = rows
+    booking['tristates'] = ['\u274C', '\u2705', '\u2753']
+    booking['tristate_answers'] = [booking['tristates'][x] for x in booking['edit_answers']]
 
     if request.method == 'POST':
         comment = request.form['comment']
@@ -124,8 +126,7 @@ def answer(booking_id, edit_name):
         else:
             name = edit_name
         occasions = b.occasions_list()
-        true_answers = [occasions[int(x)] for x in request.form.getlist('answers')]
-        answers = [x in true_answers for x in occasions]
+        answers = [booking['tristates'].index(x) for x in request.form.getlist('tristate_answers')]
 
         if not name:
             flash('Namn krävs.')

@@ -211,4 +211,5 @@ li a {
 .tristate {
 	cursor: default;
 	text-align:center;
+	user-select: none;
 }

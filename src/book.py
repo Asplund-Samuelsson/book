@@ -2,9 +2,9 @@ import uuid
 import pandas as pd
 from datetime import datetime
 from dateutil import tz
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, insert
 from sqlalchemy.orm import Session
-from src.models import Base, Booking, Occasion, Answer, Comment
+from src.models import Base, Booking, Occasion, Answer, Comment, Active
 
 
 class Database():
@@ -13,6 +13,7 @@ class Database():
         self.occasioncolumns = ('booking_id', 'occasion', 'date', 'time_start', 'time_end')
         self.answercolumns = ('booking_id', 'occasion', 'name', 'answer')
         self.commentcolumns = ('booking_id', 'time_created', 'name', 'comment')
+        self.activecolumns = ('booking_id', 'is_active')
 
         self.engine = create_engine("sqlite+pysqlite:///data/tables.db")
         Base.metadata.create_all(self.engine)
@@ -21,6 +22,7 @@ class Database():
             self.occasioncolumns: Occasion,
             self.answercolumns: Answer,
             self.commentcolumns: Comment,
+            self.activecolumns: Active,
             }
 
     def add(self, source_df: pd.DataFrame):
@@ -39,7 +41,11 @@ class Database():
 
     def update(self, variables: dict, selection: dict, Table):
         with Session(self.engine) as session:
-            row = session.execute(select(Table).filter_by(**selection)).scalar_one()
+            row = session.execute(select(Table).filter_by(**selection)).scalar_one_or_none()
+            if row is None:
+                _ = session.execute(insert(Table).values(**selection))
+                session.commit()
+                row = session.execute(select(Table).filter_by(**selection)).scalar_one()
             for column, value in variables.items():
                 setattr(row, column, value)
             session.commit()
@@ -49,6 +55,9 @@ class Database():
 
     def update_answers(self, variables: dict, selection: dict):
         self.update(variables, selection, Answer)
+
+    def update_active(self, variables: dict, selection: dict):
+        self.update(variables, selection, Active)
 
     def get(self, columns, booking_id=''):
         Table = self.model_from_columns[columns]
@@ -72,6 +81,9 @@ class Database():
 
     def get_comments(self, booking_id=''):
         return self.get(self.commentcolumns, booking_id)
+
+    def get_active(self, booking_id=''):
+        return self.get(self.activecolumns, booking_id)
 
     def get_occasion(self, booking_id):
         booking = self.get_bookings(booking_id)
@@ -132,6 +144,27 @@ class BookingManager():
             {k: [v] for k, v in zip(self.db.commentcolumns, [self.booking_id, time_created, name, comment])}
             )
         self.db.add(new_comment)
+
+    def is_active(self, booking_id=''):
+        if booking_id == '':
+            booking_id = self.booking_id
+        result = self.db.get_active(booking_id).get('is_active')
+        if len(result) > 0:
+            is_active = result[0]
+        else:
+            is_active = True
+        return is_active
+
+    def update_active(self, is_active):
+        update_items = {'is_active': is_active}
+        selection = {'booking_id': self.booking_id}
+        self.db.update_active(update_items, selection)
+
+    def set_inactive(self):
+        self.update_active(False)
+
+    def set_active(self):
+        self.update_active(True)
 
     def to_local_time(self, time):
         from_zone = tz.gettz('UTC')
@@ -236,21 +269,28 @@ class BookingManager():
             'edit_answers': edit_answers,
             'ranks': ranks,
             'comments': comments,
+            'is_active': self.is_active()
             }
 
         return table
 
     def index_list(self, n=10):
-        bookings_raw = self.db.get_bookings().sort_values(by='time_created', ascending=False).head(n).iterrows()
+        bookings_raw = self.db.get_bookings().sort_values(by='time_created', ascending=False).iterrows()
         bookings_list = []
+        i = 1
         for booking in bookings_raw:
+            if i > n:
+                break
             booking = booking[1].to_dict()
+            if not self.is_active(booking['booking_id']):
+                continue
             bookings_list.append({
                 'booking_id': booking['booking_id'],
                 'title': booking['title'],
                 'time_created': self.to_local_time(booking['time_created']),
                 'description': booking['description'],
                 })
+            i += 1
         return bookings_list
 
     def occasions_list(self):

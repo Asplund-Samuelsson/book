@@ -27,6 +27,11 @@
                   >{{ request.form['description'] | default(booking['description']) }}</textarea>
         <br>
         <br>
+        {% if edit %}
+        <input type="checkbox" name="set_inactive" {% if not booking['is_active'] %}checked{% endif %}> Dölj bokningen</input>
+        <br>
+        <br>
+        {% endif %}
         {% if not edit %}
         <div class="field">
             <input type="date" name="dates"></input>

@@ -18,6 +18,13 @@ class Booking(Base):
     occasions: Mapped[List["Occasion"]] = relationship()
 
 
+class Active(Base):
+    __tablename__ = "active"
+    active_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    booking_id: Mapped[str] = mapped_column(ForeignKey("bookings.booking_id"))
+    is_active: Mapped[bool] = mapped_column(default=True)
+
+
 class Occasion(Base):
     __tablename__ = "occasions"
     occasion_id: Mapped[int] = mapped_column(primary_key=True)

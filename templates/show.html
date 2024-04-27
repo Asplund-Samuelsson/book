@@ -5,6 +5,7 @@
     <br>
     <p class="timestamp">Skapad {{ booking['time_created'] }} - <a href="{{ url_for('create', booking_id=booking_id) }}">&#x270E; Redigera</a></p>
     <br>
+  {% if booking['is_active'] %}
     <h3>Plats</h3>
     <p>{{ booking['location'] }}</p>
     <br>
@@ -59,4 +60,7 @@
     <p>{{ comment[2] }}</p>
     <br>
     {% endfor %}
+  {% else %}
+  Bokningen är dold. För att återställa, gå till <a href="{{ url_for('create', booking_id=booking_id) }}">Redigera</a>.
+  {% endif %}
 {% endblock %}

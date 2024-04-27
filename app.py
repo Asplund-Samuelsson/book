@@ -72,6 +72,7 @@ def create(booking_id):
         title = request.form['title']
         location = request.form.get('location', '')
         description = request.form['description']
+        set_inactive = request.form.getlist('set_inactive')
         dates = request.form.getlist('dates')
         start_times = request.form.getlist('start_times')
         end_times = request.form.getlist('end_times')
@@ -82,6 +83,10 @@ def create(booking_id):
             if not edit:
                 b.new_context()
             b.update_bookings(title, description, location)
+            if len(set_inactive) == 1 and set_inactive[0] != 'False':
+                b.set_inactive()
+            else:
+                b.set_active()
             if not edit:
                 for occasion in zip(dates, start_times, end_times):
                     b.add_occasion(occasion[0], occasion[1], occasion[2])

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{% block title %} &#128738; PanPlan &#128738; {% endblock %}</h1>
+<h1>{% block title %} PanPlan {% endblock %}</h1>
 <br>
   {% for booking in bookings %}
   <a style="text-decoration: none; color: black;" href="{{ url_for('show', booking_id=booking['booking_id']) }}">

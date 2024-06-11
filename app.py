@@ -65,7 +65,7 @@ def index():
 @app.route('/create/', defaults={'booking_id': ''}, methods=('GET', 'POST'))
 @app.route('/create/<booking_id>', methods=('GET', 'POST'))
 @login_required
-def create(booking_id):
+def create(booking_id: str):
     edit = booking_id != ''
     b.set_context(booking_id)
     if request.method == 'POST':
@@ -101,7 +101,7 @@ def create(booking_id):
 
 @app.route('/show/<booking_id>')
 @login_required
-def show(booking_id):
+def show(booking_id: str):
     b.set_context(booking_id)
     return render_template('show.html', booking=b.to_table(), booking_id=booking_id)
 
@@ -109,7 +109,7 @@ def show(booking_id):
 @app.route('/answer/<booking_id>', defaults={'edit_name': ''}, methods=['GET', 'POST'])
 @app.route('/answer/<booking_id>/<edit_name>', methods=['GET', 'POST'])
 @login_required
-def answer(booking_id, edit_name):
+def answer(booking_id: str, edit_name: str):
     edit = edit_name != ''
     b.set_context(booking_id)
 
@@ -152,7 +152,7 @@ def answer(booking_id, edit_name):
 
 @app.route('/comment/<booking_id>', methods=['GET', 'POST'])
 @login_required
-def comment(booking_id):
+def comment(booking_id: str):
     b.set_context(booking_id)
 
     if request.method == 'POST':

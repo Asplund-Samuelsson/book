@@ -1,10 +1,11 @@
 import uuid
-import pandas as pd
 from datetime import datetime
 from dateutil import tz
+from pandas import DataFrame
 from sqlalchemy import create_engine, select, insert
 from sqlalchemy.orm import Session
 from src.models import Base, Booking, Occasion, Answer, Comment, Active
+from typing import Tuple, List
 
 
 class Database():
@@ -25,21 +26,21 @@ class Database():
             self.activecolumns: Active,
             }
 
-    def add(self, source_df: pd.DataFrame):
+    def add(self, source_df: DataFrame) -> None:
         Table = self.model_from_columns[tuple(source_df.columns)]
         rows = [Table(**dict(x[1])) for x in source_df.iterrows()]
         with Session(self.engine) as session:
             session.add_all(rows)
             session.commit()
 
-    def new(self, booking_id):
+    def new(self, booking_id: str) -> None:
         time_created = datetime.utcnow().replace(microsecond=0).isoformat()
-        new_booking = pd.DataFrame(
+        new_booking = DataFrame(
             {k: [v] for k, v in zip(self.bookingcolumns, [booking_id, 0, "", time_created, "", ""])}
             )
         self.add(new_booking)
 
-    def update(self, variables: dict, selection: dict, Table):
+    def update(self, variables: dict, selection: dict, Table: Base) -> None:
         with Session(self.engine) as session:
             row = session.execute(select(Table).filter_by(**selection)).scalar_one_or_none()
             if row is None:
@@ -50,16 +51,16 @@ class Database():
                 setattr(row, column, value)
             session.commit()
 
-    def update_bookings(self, variables: dict, selection: dict):
+    def update_bookings(self, variables: dict, selection: dict) -> None:
         self.update(variables, selection, Booking)
 
-    def update_answers(self, variables: dict, selection: dict):
+    def update_answers(self, variables: dict, selection: dict) -> None:
         self.update(variables, selection, Answer)
 
-    def update_active(self, variables: dict, selection: dict):
+    def update_active(self, variables: dict, selection: dict) -> None:
         self.update(variables, selection, Active)
 
-    def get(self, columns, booking_id=''):
+    def get(self, columns: Tuple[str], booking_id: str = '') -> DataFrame:
         Table = self.model_from_columns[columns]
         with Session(self.engine) as session:
             if booking_id != '':
@@ -67,31 +68,31 @@ class Database():
             else:
                 rows = session.query(Table).all()
         data = [[getattr(row, col) for row in rows] for col in columns]
-        df = pd.DataFrame(dict(zip(columns, data)))
+        df = DataFrame(dict(zip(columns, data)))
         return df
 
-    def get_bookings(self, booking_id=''):
+    def get_bookings(self, booking_id: str = '') -> DataFrame:
         return self.get(self.bookingcolumns, booking_id)
 
-    def get_occasions(self, booking_id=''):
+    def get_occasions(self, booking_id: str = '') -> DataFrame:
         return self.get(self.occasioncolumns, booking_id)
 
-    def get_answers(self, booking_id=''):
+    def get_answers(self, booking_id: str = '') -> DataFrame:
         return self.get(self.answercolumns, booking_id)
 
-    def get_comments(self, booking_id=''):
+    def get_comments(self, booking_id: str = '') -> DataFrame:
         return self.get(self.commentcolumns, booking_id)
 
-    def get_active(self, booking_id=''):
+    def get_active(self, booking_id: str = '') -> DataFrame:
         return self.get(self.activecolumns, booking_id)
 
-    def get_occasion(self, booking_id):
+    def get_occasion(self, booking_id: str) -> int:
         booking = self.get_bookings(booking_id)
         occasion = int(booking['next_occasion'].iloc[0])
         self.update_bookings({'next_occasion': occasion + 1}, {'booking_id': booking_id})
         return occasion
 
-    def get_booking(self, booking_id):
+    def get_booking(self, booking_id: str) -> dict:
         bookings = self.get_bookings()
         details = bookings.loc[bookings.booking_id == booking_id].to_dict('records')[0]
         return details
@@ -108,44 +109,44 @@ class BookingManager():
         self.replace_int = {0: '', 1: '\u2713', 2: '?'}
         self.db = Database()
 
-    def new_context(self):
+    def new_context(self) -> None:
         self.booking_id = str(uuid.uuid1())
         self.db.new(self.booking_id)
 
-    def set_context(self, booking_id):
+    def set_context(self, booking_id: str) -> None:
         self.booking_id = booking_id
 
-    def update_bookings(self, title, description, location):
+    def update_bookings(self, title: str, description: str, location: str) -> None:
         update_items = {'title': title, 'description': description, 'location': location}
         selection = {'booking_id': self.booking_id}
         self.db.update_bookings(update_items, selection)
 
-    def add_occasion(self, date, time_start, time_end):
+    def add_occasion(self, date: str, time_start: str, time_end: str) -> None:
         occasion = self.db.get_occasion(self.booking_id)
-        new_occasion = pd.DataFrame(
+        new_occasion = DataFrame(
             {k: [v] for k, v in zip(self.db.occasioncolumns, [self.booking_id, occasion, date, time_start, time_end])}
             )
         self.db.add(new_occasion)
 
-    def add_answer(self, occasion, name, answer):
-        new_answer = pd.DataFrame(
+    def add_answer(self, occasion: int, name: str, answer: int) -> None:
+        new_answer = DataFrame(
             {k: [v] for k, v in zip(self.db.answercolumns, [self.booking_id, occasion, name, answer])}
             )
         self.db.add(new_answer)
 
-    def update_answer(self, occasion, name, answer):
+    def update_answer(self, occasion: int, name: str, answer: int) -> None:
         update_items = {'answer': answer}
         selection = {'occasion': occasion, 'name': name, 'booking_id': self.booking_id}
         self.db.update_answers(update_items, selection)
 
-    def add_comment(self, name, comment):
+    def add_comment(self, name: str, comment: str) -> None:
         time_created = datetime.utcnow().replace(microsecond=0).isoformat()
-        new_comment = pd.DataFrame(
+        new_comment = DataFrame(
             {k: [v] for k, v in zip(self.db.commentcolumns, [self.booking_id, time_created, name, comment])}
             )
         self.db.add(new_comment)
 
-    def is_active(self, booking_id=''):
+    def is_active(self, booking_id: str = '') -> bool:
         if booking_id == '':
             booking_id = self.booking_id
         result = self.db.get_active(booking_id).get('is_active')
@@ -155,25 +156,25 @@ class BookingManager():
             is_active = True
         return is_active
 
-    def update_active(self, is_active):
+    def update_active(self, is_active: bool) -> None:
         update_items = {'is_active': is_active}
         selection = {'booking_id': self.booking_id}
         self.db.update_active(update_items, selection)
 
-    def set_inactive(self):
+    def set_inactive(self) -> None:
         self.update_active(False)
 
-    def set_active(self):
+    def set_active(self) -> None:
         self.update_active(True)
 
-    def to_local_time(self, time):
+    def to_local_time(self, time: str) -> str:
         from_zone = tz.gettz('UTC')
         to_zone = tz.gettz('Europe/Stockholm')
         utc = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S').replace(tzinfo=from_zone)
         local = utc.astimezone(to_zone).replace(microsecond=0).strftime('%Y-%m-%d %H:%M')
         return local
 
-    def weekday(self, date):
+    def weekday(self, date: str) -> str:
         weekdays = [
             "Måndag",
             "Tisdag",
@@ -190,7 +191,7 @@ class BookingManager():
             weekday = ''
         return weekday
 
-    def to_table(self, edit_name=''):
+    def to_table(self, edit_name: str = '') -> dict:
         comments = self.db.get_comments(self.booking_id).sort_values(by=['time_created'])
         comments = list(zip(
             list(comments['name']),
@@ -216,7 +217,7 @@ class BookingManager():
         answers_copy = answers.copy()
         answers_copy['answer'] = answers_copy['answer'].apply(lambda x: int(x == 1))
         answers_sum = answers_copy.groupby(by=['occasion']).sum()
-        best_occasions = pd.DataFrame({
+        best_occasions = DataFrame({
             'occasion': list(answers_sum.index),
             'checked': list(answers_sum['answer'])
             })
@@ -274,7 +275,7 @@ class BookingManager():
 
         return table
 
-    def index_list(self, n=10):
+    def index_list(self, n: int = 10) -> List[dict]:
         bookings_raw = self.db.get_bookings().sort_values(by='time_created', ascending=False).iterrows()
         bookings_list = []
         i = 1
@@ -293,8 +294,8 @@ class BookingManager():
             i += 1
         return bookings_list
 
-    def occasions_list(self):
+    def occasions_list(self) -> List[int]:
         return list(self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start']).occasion)
 
-    def names_list(self):
+    def names_list(self) -> List[str]:
         return list(self.db.get_answers(self.booking_id).name)

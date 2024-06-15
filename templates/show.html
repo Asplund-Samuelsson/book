@@ -14,7 +14,7 @@
     <br>
     <table cellspacing="0" class="show">
         <tr>
-          {% for column in booking['header'] %}
+          {% for column in booking['header']['show'] %}
           {% if column in booking['names'] %}
           <th class="rotate"><div><span>{% if column|length <= 12 %}{{ column }}{% else %}{{ column[:9] }}...{% endif %}</span></div></th>
           {% else %}
@@ -23,7 +23,7 @@
           {% endfor %}
         </tr>
         <tr>
-          {% for column in booking['header'] %}
+          {% for column in booking['header']['show'] %}
           {% if column in booking['names'] %}
           <th class="pen"><a href="{{ url_for('answer', booking_id=booking_id, edit_name=column) }}"><div><span></span> &#x270E; </span></div></a></th>
           {% else %}
@@ -31,7 +31,7 @@
           {% endif %}
           {% endfor %}
         </tr>
-        {% for row in booking['rows'] %}
+        {% for row in booking['rows']['show'] %}
         <tr {% if booking['ranks'][loop.index0] == 1 %}style="background-color:#9ecae1"{% elif booking['ranks'][loop.index0] == 2 %}style="background-color:#c6dbef"{% elif booking['ranks'][loop.index0] == 3 %}style="background-color:#eff3ff"{% endif %}>
           {% for column in row %}
           <td>{{ column }}</td>

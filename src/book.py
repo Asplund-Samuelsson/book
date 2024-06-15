@@ -211,14 +211,19 @@ class BookingManager():
 
         answers = self.db.get_answers(self.booking_id)
 
+        occasion_columns = ['date', 'time_start', 'time_end']
         names = list(answers['name'].unique())
-        wanted_columns = ['date', 'time_start', 'time_end', '#'] + names
-        header = [self.columns_translation.get(x, x) for x in wanted_columns]
-        if edit_name in header:
-            header.remove(edit_name)
-        header.insert(0, '')
+        show_header = ['']
+        show_header.extend([self.columns_translation[x] for x in occasion_columns])
+        show_header.append('#')
+        for name in names:
+            if name != edit_name:
+                show_header.append(name)
 
-        rows = []
+        answer_header = [v for i, v in enumerate(show_header) if i != show_header.index('#')]
+
+        show_rows = []
+        answer_rows = []
         edit_answers = []
         ranks = []
 
@@ -235,7 +240,7 @@ class BookingManager():
 
         for occasion in occasions.iterrows():
             occasion = occasion[1].to_dict()
-            row = [occasion[x] for x in wanted_columns[:3]]
+            row = [occasion[x] for x in occasion_columns]
             occasion_vote = best_occasions[best_occasions['occasion'] == occasion['occasion']]
             if len(occasion_vote) > 0:
                 n_yes = occasion_vote['checked'].iloc[0]
@@ -248,7 +253,7 @@ class BookingManager():
 
             occasion_loc = (answers['occasion'] == occasion['occasion'])
 
-            for name in wanted_columns[4:]:
+            for name in names:
                 name_loc = (answers['name'] == name)
                 answer = answers.loc[occasion_loc & name_loc, ['answer']]
                 if len(answer):
@@ -263,7 +268,8 @@ class BookingManager():
             row = [self.replace_int.get(x, x) for x in row]
             row.insert(0, self.weekday(row[0]))
 
-            rows.append(row)
+            show_rows.append(row)
+            answer_rows.append([v for i, v in enumerate(row) if i != show_header.index('#')])
 
         booking = self.db.get_booking(self.booking_id)
 
@@ -273,8 +279,8 @@ class BookingManager():
             'time_created': self.to_local_time(booking['time_created']),
             'location': booking['location'],
             'description': booking['description'],
-            'header': header,
-            'rows': rows,
+            'header': {'show': show_header, 'answer': answer_header},
+            'rows': {'show': show_rows, 'answer': answer_rows},
             'names': names,
             'edit_name': edit_name,
             'edit_answers': edit_answers,

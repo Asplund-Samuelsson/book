@@ -41,7 +41,7 @@
             <span onclick="removeField(this)">-</span>
         </div>
         {% else %}
-        {% for row in booking['rows'] %}
+        {% for row in booking['rows']['show'] %}
         <div class="field">
             <input type="date" name="dates" value="{{ row[1] }}" disabled></input>
             <input type="time" name="start_times" value="{{ row[2] }}" disabled></input>

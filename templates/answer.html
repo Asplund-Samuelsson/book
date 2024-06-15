@@ -15,7 +15,7 @@
     {% endif %}
     <table>
         <tr>
-          {% for column in booking['header'] %}
+          {% for column in booking['header']['answer'] %}
           {% if column in booking['names'] %}
           {% else %}
           <th><div><span>{{ column }}</span></div></th>
@@ -23,10 +23,10 @@
           {% endfor %}
         <th>&#x2193;</th>
         </tr>
-        {% for row in booking['rows'] %}
+        {% for row in booking['rows']['answer'] %}
         <tr>
           {% for column in row %}
-          {% if booking['header'][loop.index0] not in booking['names'] %}<td>{{ column }}</td>{% endif %}
+          {% if booking['header']['answer'][loop.index0] not in booking['names'] %}<td>{{ column }}</td>{% endif %}
           {% endfor %}
           <td>
             <input

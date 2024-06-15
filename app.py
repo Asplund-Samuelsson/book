@@ -110,13 +110,6 @@ def answer(booking_id: str, edit_name: str):
     b.set_context(booking_id)
 
     booking = b.to_table(edit_name)
-    i = booking['header'].index('#')
-    booking['header'].pop(i)
-    rows = []
-    for row in booking['rows']:
-        row.pop(i)
-        rows.append(row)
-    booking['rows'] = rows
     booking['tristates'] = ['\u274C', '\u2705', '\u2753']
     booking['tristate_answers'] = [booking['tristates'][x] for x in booking['edit_answers']]
 

@@ -202,6 +202,7 @@ class BookingManager():
         return weekday
 
     def to_table(self, edit_name: str = '') -> dict:
+        # Format booking comments
         comments = self.db.get_comments(self.booking_id).sort_values(by=['time_created'])
         comments = list(zip(
             list(comments['name']),
@@ -209,26 +210,22 @@ class BookingManager():
             list(comments['comment']),
             ))
 
-        answers = self.db.get_answers(self.booking_id)
-
+        # Construct booking table header
         occasion_columns = ['date', 'time_start', 'time_end']
-        names = list(answers['name'].unique())
+
         show_header = ['']
         show_header.extend([self.columns_translation[x] for x in occasion_columns])
         show_header.append('#')
+
+        answers = self.db.get_answers(self.booking_id)
+        names = list(answers['name'].unique())
         for name in names:
             if name != edit_name:
                 show_header.append(name)
 
         answer_header = [v for i, v in enumerate(show_header) if i != show_header.index('#')]
 
-        show_rows = []
-        answer_rows = []
-        edit_answers = []
-        ranks = []
-
-        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start'])
-
+        # Calculate the most suitable occasions
         answers_copy = answers.copy()
         answers_copy['answer'] = answers_copy['answer'].apply(lambda x: int(x == 1))
         answers_sum = answers_copy.groupby(by=['occasion']).sum()
@@ -238,6 +235,13 @@ class BookingManager():
             })
         best_occasions['rank'] = list(best_occasions.rank(method='dense', ascending=False)['checked'].astype(int))
 
+        # Construct booking table rows
+        show_rows = []
+        answer_rows = []
+        edit_answers = []
+        ranks = []
+
+        occasions = self.db.get_occasions(self.booking_id).sort_values(by=['date', 'time_start'])
         for occasion in occasions.iterrows():
             occasion = occasion[1].to_dict()
             row = [occasion[x] for x in occasion_columns]
@@ -271,6 +275,7 @@ class BookingManager():
             show_rows.append(row)
             answer_rows.append([v for i, v in enumerate(row) if i != show_header.index('#')])
 
+        # Construct the input to booking HTML rendering
         booking = self.db.get_booking(self.booking_id)
 
         table = {

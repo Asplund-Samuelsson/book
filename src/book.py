@@ -128,16 +128,28 @@ class BookingManager():
             )
         self.db.add(new_occasion)
 
+    def add_occasions(self, dates: List[str], start_times: List[str], end_times: List[str]) -> None:
+        for occasion in zip(dates, start_times, end_times):
+            self.add_occasion(occasion[0], occasion[1], occasion[2])
+
     def add_answer(self, occasion: int, name: str, answer: int) -> None:
         new_answer = DataFrame(
             {k: [v] for k, v in zip(self.db.answercolumns, [self.booking_id, occasion, name, answer])}
             )
         self.db.add(new_answer)
 
+    def add_answers(self, occasions: List[int], name: str, answers: List[int]) -> None:
+        for occasion, answer in zip(occasions, answers):
+            self.add_answer(occasion, name, answer)
+
     def update_answer(self, occasion: int, name: str, answer: int) -> None:
         update_items = {'answer': answer}
         selection = {'occasion': occasion, 'name': name, 'booking_id': self.booking_id}
         self.db.update_answers(update_items, selection)
+
+    def update_answers(self, occasions: List[int], name: str, answers: List[int]) -> None:
+        for occasion, answer in zip(occasions, answers):
+            self.update_answer(occasion, name, answer)
 
     def add_comment(self, name: str, comment: str) -> None:
         time_created = datetime.utcnow().replace(microsecond=0).isoformat()
@@ -161,11 +173,9 @@ class BookingManager():
         selection = {'booking_id': self.booking_id}
         self.db.update_active(update_items, selection)
 
-    def set_inactive(self) -> None:
-        self.update_active(False)
-
-    def set_active(self) -> None:
-        self.update_active(True)
+    def set_active(self, set_inactive: List[str]) -> None:
+        booking_is_active = not (len(set_inactive) == 1 and set_inactive[0] != 'False')
+        self.update_active(booking_is_active)
 
     def to_local_time(self, time: str) -> str:
         from_zone = tz.gettz('UTC')

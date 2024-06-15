@@ -83,13 +83,9 @@ def create(booking_id: str):
             if not edit:
                 b.new_context()
             b.update_bookings(title, description, location)
-            if len(set_inactive) == 1 and set_inactive[0] != 'False':
-                b.set_inactive()
-            else:
-                b.set_active()
+            b.set_active(set_inactive)
             if not edit:
-                for occasion in zip(dates, start_times, end_times):
-                    b.add_occasion(occasion[0], occasion[1], occasion[2])
+                b.add_occasions(dates, start_times, end_times)
             return redirect(url_for('show', booking_id=b.booking_id))
 
     if not edit:
@@ -138,11 +134,10 @@ def answer(booking_id: str, edit_name: str):
         elif name in b.names_list() and not edit:
             flash('Namnet är redan registrerat.')
         else:
-            for occasion, answer in zip(occasions, answers):
-                if not edit:
-                    b.add_answer(occasion, name, answer)
-                else:
-                    b.update_answer(occasion, name, answer)
+            if not edit:
+                b.add_answers(occasions, name, answers)
+            else:
+                b.update_answers(occasions, name, answers)
             if comment != '':
                 b.add_comment(name, comment)
             return redirect(url_for('show', booking_id=booking_id))

@@ -12,7 +12,8 @@
     <h3>Beskrivning</h3>
     <p>{{ booking['description'] }}</p>
     <br>
-    <table cellspacing="0" class="show">
+    <div class="table-wrapper">
+      <table cellspacing="0" class="show">
         <tr>
           {% for column in booking['header']['show'] %}
           {% if column in booking['names'] %}
@@ -39,6 +40,7 @@
         </tr>
         {% endfor %}
       </table>
+    </div>
     <div class="clear"></div>
     <form action="{{ url_for('answer', booking_id=booking_id) }}">
       <button type="submit" class="answer">Lämna svar</button>

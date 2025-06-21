@@ -149,9 +149,11 @@ th, td {
 }
 
 table.show {
-    display: block;
-    overflow-x: scroll;
-    white-space: nowrap;
+	width: auto;
+	table-layout: auto;
+	border-collapse: collapse;
+	box-sizing: border-box;
+	max-width: 100%;
 }
 
 th.pen a {
@@ -230,3 +232,20 @@ li a {
 	user-select: none;
 	outline: none;
 }
+
+.table-wrapper {
+	overflow-x: auto;
+	overflow-y: hidden;
+	max-width: 100%;
+	box-sizing: border-box;
+  }
+  
+/* Hide scrollbars in Firefox and WebKit browsers */
+.table-wrapper::-webkit-scrollbar {
+	display: none;
+}
+
+.table-wrapper {
+	scrollbar-width: none; /* For Firefox */
+}
+  

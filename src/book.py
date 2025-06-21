@@ -108,6 +108,7 @@ class BookingManager():
             }
         self.replace_int = {0: '', 1: '\u2713', 2: '?'}
         self.db = Database()
+        self.vote_symbol = '#'
 
     def new_context(self) -> None:
         self.booking_id = str(uuid.uuid1())
@@ -215,7 +216,7 @@ class BookingManager():
 
         show_header = ['']
         show_header.extend([self.columns_translation[x] for x in occasion_columns])
-        show_header.append('#')
+        show_header.append(self.vote_symbol)
 
         answers = self.db.get_answers(self.booking_id)
         names = list(answers['name'].unique())
@@ -223,7 +224,7 @@ class BookingManager():
             if name != edit_name:
                 show_header.append(name)
 
-        answer_header = [v for i, v in enumerate(show_header) if i != show_header.index('#')]
+        answer_header = [v for i, v in enumerate(show_header) if i != show_header.index(self.vote_symbol)]
 
         # Calculate the most suitable occasions
         answers_copy = answers.copy()
@@ -273,7 +274,7 @@ class BookingManager():
             row.insert(0, self.weekday(row[0]))
 
             show_rows.append(row)
-            answer_rows.append([v for i, v in enumerate(row) if i != show_header.index('#')])
+            answer_rows.append([v for i, v in enumerate(row) if i != show_header.index(self.vote_symbol)])
 
         # Construct the input to booking HTML rendering
         booking = self.db.get_booking(self.booking_id)
@@ -320,3 +321,6 @@ class BookingManager():
 
     def names_list(self) -> List[str]:
         return list(self.db.get_answers(self.booking_id).name)
+
+    def prohibited_names(self) -> List[str]:
+        return [c[1] for c in self.columns_translation.items()] + [self.vote_symbol]

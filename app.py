@@ -124,6 +124,8 @@ def answer(booking_id: str, edit_name: str):
 
         if not name:
             flash('Namn krävs.')
+        elif name in b.prohibited_names():
+            flash('Namnet "' + name + '" är inte tillåtet.')
         elif name in b.names_list() and not edit:
             flash('Namnet är redan registrerat.')
         else:
